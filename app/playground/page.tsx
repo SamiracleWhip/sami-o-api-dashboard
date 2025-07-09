@@ -138,7 +138,7 @@ export default function Playground() {
                       </div>
                     </div>
                     <p className="text-xs text-gray-500 mt-2">
-                      Your API key will be validated against the database to check if it's active and valid.
+                      Your API key will be validated against the database to check if it&apos;s active and valid.
                     </p>
                   </div>
 
@@ -176,7 +176,7 @@ export default function Playground() {
                   <h3 className="text-sm font-medium text-blue-900 mb-2">How it works:</h3>
                   <ul className="text-sm text-blue-800 space-y-1">
                     <li>• Enter your API key in the field above</li>
-                    <li>• Click "Validate API Key" to check if it's valid</li>
+                    <li>• Click &quot;Validate API Key&quot; to check if it&apos;s valid</li>
                     <li>• Valid keys will grant access to the protected page</li>
                     <li>• Invalid or inactive keys will be rejected</li>
                   </ul>
