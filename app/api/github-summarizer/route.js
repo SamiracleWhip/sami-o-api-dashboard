@@ -146,10 +146,24 @@ async function fetchGitHubRepoData(owner, repo) {
 
 // Helper function to generate repository summary
 async function generateSummary(repoData) {
+  console.log('Generating summary for:', repoData.repository.name)
+  
   const { repository, readme, recentCommits } = repoData
   
   // Get AI-powered README summary
-  const aiSummary = await summarizeRepository(readme)
+  let aiSummary
+  try {
+    console.log('Calling summarizeRepository...')
+    aiSummary = await summarizeRepository(readme)
+    console.log('AI Summary result:', aiSummary)
+  } catch (error) {
+    console.error('Error in summarizeRepository:', error)
+    // Fallback summary
+    aiSummary = {
+      summary: 'Failed to generate AI summary',
+      cool_facts: ['An error occurred while analyzing the repository']
+    }
+  }
   
   const summary = {
     name: repository.name,
@@ -237,15 +251,20 @@ function calculatePopularityScore(repo) {
 // POST - Summarize GitHub repository
 export async function POST(request) {
   try {
+    console.log('POST /api/github-summarizer called')
+    
     const body = await request.json()
     const { githubUrl } = body
+    console.log('Request body:', body)
 
     // Get API key from header
     const apiKey = request.headers.get('x-api-key')
+    console.log('API Key provided:', !!apiKey)
 
     // Validate API key
     const validation = await validateApiKey(apiKey)
     if (!validation.valid) {
+      console.log('API key validation failed:', validation.error)
       return NextResponse.json(
         { error: validation.error },
         { status: validation.status }
@@ -268,10 +287,14 @@ export async function POST(request) {
       )
     }
 
+    console.log('Parsed repo info:', repoInfo)
+
     // Fetch repository data
     let repoData
     try {
+      console.log('Fetching GitHub repo data...')
       repoData = await fetchGitHubRepoData(repoInfo.owner, repoInfo.repo)
+      console.log('Successfully fetched repo data')
     } catch (error) {
       console.error('Error fetching GitHub data:', error)
       return NextResponse.json(
@@ -281,7 +304,9 @@ export async function POST(request) {
     }
 
     // Generate summary
+    console.log('Generating summary...')
     const summary = await generateSummary(repoData)
+    console.log('Summary generated successfully')
 
     return NextResponse.json({
       success: true,
@@ -296,8 +321,9 @@ export async function POST(request) {
 
   } catch (error) {
     console.error('Error in POST /api/github-summarizer:', error)
+    console.error('Error stack:', error.stack)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error: ' + error.message },
       { status: 500 }
     )
   }
@@ -305,33 +331,42 @@ export async function POST(request) {
 
 // GET - Get endpoint information
 export async function GET() {
-  return NextResponse.json({
-    endpoint: '/api/github-summarizer',
-    description: 'Summarize GitHub repositories with API key authentication',
-    methods: ['POST'],
-    authentication: {
-      type: 'header',
-      header: 'x-api-key',
-      description: 'Provide your API key in the x-api-key header'
-    },
-    requiredFields: ['githubUrl'],
-    example: {
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': 'smo-your-api-key-here'
+  try {
+    return NextResponse.json({
+      endpoint: '/api/github-summarizer',
+      description: 'Summarize GitHub repositories with API key authentication',
+      methods: ['POST'],
+      authentication: {
+        type: 'header',
+        header: 'x-api-key',
+        description: 'Provide your API key in the x-api-key header'
       },
-      body: {
-        githubUrl: 'https://github.com/owner/repository'
-      }
-    },
-    curlExample: 'curl -X POST http://localhost:3000/api/github-summarizer -H "Content-Type: application/json" -H "x-api-key: smo-your-api-key-here" -d \'{"githubUrl": "https://github.com/owner/repository"}\'',
-    features: [
-      'Repository metadata extraction',
-      'AI-powered README content summarization',
-      'Interesting project facts extraction',
-      'Recent commit history',
-      'Activity and popularity scoring',
-      'API key validation and usage tracking'
-    ]
-  })
+      requiredFields: ['githubUrl'],
+      example: {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': 'smo-your-api-key-here'
+        },
+        body: {
+          githubUrl: 'https://github.com/owner/repository'
+        }
+      },
+      curlExample: 'curl -X POST http://localhost:3005/api/github-summarizer -H "Content-Type: application/json" -H "x-api-key: smo-your-api-key-here" -d \'{"githubUrl": "https://github.com/owner/repository"}\'',
+      features: [
+        'Repository metadata extraction',
+        'AI-powered README content summarization',
+        'Interesting project facts extraction',
+        'Recent commit history',
+        'Activity and popularity scoring',
+        'API key validation and usage tracking'
+      ]
+    })
+  } catch (error) {
+    console.error('Error in GET /api/github-summarizer:', error)
+    return NextResponse.json(
+      { error: 'Internal server error: ' + error.message },
+      { status: 500 }
+    )
+  }
 }
+
