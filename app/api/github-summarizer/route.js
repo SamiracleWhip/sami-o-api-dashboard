@@ -1,6 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
-import { summarizeRepository } from '@/lib/chain'
+import { summarizeRepository } from './chain'
 
 // Helper function to validate API key
 async function validateApiKey(apiKey) {
