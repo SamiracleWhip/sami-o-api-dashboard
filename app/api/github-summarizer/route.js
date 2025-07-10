@@ -143,6 +143,85 @@ async function fetchGitHubRepoData(owner, repo) {
   }
 }
 
+// Helper function to summarize README content
+function summarizeReadme(readmeContent) {
+  if (!readmeContent) return null
+
+  // Clean the README content
+  let cleanContent = readmeContent
+    // Remove HTML tags
+    .replace(/<[^>]*>/g, ' ')
+    // Remove markdown image syntax
+    .replace(/!\[.*?\]\(.*?\)/g, '')
+    // Remove markdown links but keep the text
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    // Remove code blocks
+    .replace(/```[\s\S]*?```/g, '')
+    // Remove inline code
+    .replace(/`[^`]+`/g, '')
+    // Remove multiple spaces and newlines
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  if (cleanContent.length === 0) return null
+
+  // Extract key sections
+  const lines = cleanContent.split(/[.!?]+/).filter(line => line.trim().length > 10)
+  
+  // Look for description-like content (usually in first few sentences)
+  const descriptionLines = lines.slice(0, 5).filter(line => {
+    const lower = line.toLowerCase()
+    return !lower.includes('badge') && 
+           !lower.includes('license') && 
+           !lower.includes('version') &&
+           line.length > 20 &&
+           line.length < 200
+  })
+
+  // Look for installation/usage hints
+  const usageHints = lines.filter(line => {
+    const lower = line.toLowerCase()
+    return (lower.includes('install') || 
+            lower.includes('usage') || 
+            lower.includes('getting started') ||
+            lower.includes('quick start')) &&
+           line.length < 150
+  }).slice(0, 2)
+
+  // Look for feature highlights
+  const features = lines.filter(line => {
+    const lower = line.toLowerCase()
+    return (lower.includes('feature') || 
+            lower.includes('support') || 
+            lower.includes('include') ||
+            lower.includes('provide')) &&
+           line.length > 30 &&
+           line.length < 120
+  }).slice(0, 2)
+
+  // Combine into summary
+  let summary = []
+  
+  if (descriptionLines.length > 0) {
+    summary.push(descriptionLines[0].trim())
+  }
+  
+  if (features.length > 0) {
+    summary.push(...features.map(f => f.trim()))
+  }
+  
+  if (usageHints.length > 0 && summary.length < 3) {
+    summary.push(...usageHints.map(u => u.trim()))
+  }
+
+  // Ensure we have at least something
+  if (summary.length === 0 && lines.length > 0) {
+    summary.push(lines[0].trim())
+  }
+
+  return summary.length > 0 ? summary.join('. ').substring(0, 400) + (summary.join('. ').length > 400 ? '...' : '') : null
+}
+
 // Helper function to generate repository summary
 function generateSummary(repoData) {
   const { repository, readme, recentCommits } = repoData
@@ -164,7 +243,7 @@ function generateSummary(repoData) {
     license: repository.license?.name || 'No license specified',
     homepage: repository.homepage || null,
     hasReadme: !!readme,
-    readmePreview: readme ? readme.substring(0, 500) + (readme.length > 500 ? '...' : '') : null,
+    readmeSummary: summarizeReadme(readme),
     recentActivity: recentCommits.length > 0 ? {
       totalCommits: recentCommits.length,
       latestCommit: recentCommits[0],
@@ -319,13 +398,38 @@ export async function GET() {
         githubUrl: 'https://github.com/owner/repository'
       }
     },
-    curlExample: 'curl -X POST http://localhost:3002/api/github-summarizer -H "Content-Type: application/json" -H "x-api-key: smo-your-api-key-here" -d \'{"githubUrl": "https://github.com/owner/repository"}\'',
+    curlExample: 'curl -X POST http://localhost:3000/api/github-summarizer -H "Content-Type: application/json" -H "x-api-key: smo-your-api-key-here" -d \'{"githubUrl": "https://github.com/owner/repository"}\'',
     features: [
       'Repository metadata extraction',
-      'README content preview',
+      'Intelligent README content summarization',
       'Recent commit history',
       'Activity and popularity scoring',
       'API key validation and usage tracking'
     ]
   })
-} 
+}
+
+// Helper function to fetch README content
+async function getReadmeContent(owner, repo) {
+  try {
+    const readmeResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/readme`, {
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'Sami-O-API-Dashboard'
+      }
+    })
+
+    if (!readmeResponse.ok) {
+      if (readmeResponse.status === 404) {
+        return null // README not found
+      }
+      throw new Error(`GitHub API error: ${readmeResponse.status}`)
+    }
+
+    const readmeData = await readmeResponse.json()
+    return Buffer.from(readmeData.content, 'base64').toString('utf-8')
+  } catch (error) {
+    console.error('Error fetching README:', error)
+    return null
+  }
+}
