@@ -33,7 +33,7 @@ export default function Home() {
               Welcome back, {session.user.name}!
             </h1>
             <p className="text-gray-600 mb-4">
-              You're signed in as {session.user.email}
+              You&apos;re signed in as {session.user.email}
             </p>
             <div className="flex items-center gap-4 mb-6">
               {session.user.image && (
