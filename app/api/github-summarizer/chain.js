@@ -1,26 +1,29 @@
 import { z } from 'zod'
 
+// Define the output schema using Zod
+const summarySchema = z.object({
+  summary: z.string().describe('A clear, technical summary (100-300 words) explaining what the project does, key technologies used, target audience, and main features'),
+  cool_facts: z.array(z.string()).describe('3-5 specific, interesting facts about the project such as unique features, performance metrics, integrations, or architecture decisions')
+})
+
 // Helper function to create summarization chain
 async function createSummarizationChain() {
   const { ChatOpenAI } = await import('@langchain/openai')
-  const { PromptTemplate } = await import('@langchain/core/prompts')
-  const { StructuredOutputParser } = await import('langchain/output_parsers')
-  const { RunnableSequence } = await import('@langchain/core/runnables')
+  const { ChatPromptTemplate } = await import('@langchain/core/prompts')
 
-  // Initialize the LLM
+  // Initialize the LLM with structured output
   const llm = new ChatOpenAI({
-    modelName: 'gpt-3.5-turbo',
+    model: 'gpt-3.5-turbo',
     temperature: 0.1
   })
 
-  // Create output parser
-  const parser = StructuredOutputParser.fromNamesAndTypes({
-    summary: 'string',
-    cool_facts: 'string[]'
+  // Bind the structured output schema to the model
+  const structuredLlm = llm.withStructuredOutput(summarySchema, {
+    name: 'github_summary'
   })
 
   // Create prompt template with more explicit instructions
-  const promptTemplate = PromptTemplate.fromTemplate(`
+  const promptTemplate = ChatPromptTemplate.fromTemplate(`
     You are an expert software engineer analyzing a GitHub repository. Based on the README content below, provide a detailed technical summary and interesting facts.
 
     README Content:
@@ -43,15 +46,11 @@ async function createSummarizationChain() {
        
     Make the summary informative and the facts genuinely interesting - avoid generic statements.
     
-    \${parser.getFormatInstructions()}
+    Return your response in the exact format specified by the schema.
   `)
 
-  // Create the chain
-  return RunnableSequence.from([
-    promptTemplate,
-    llm,
-    parser
-  ])
+  // Create the chain by piping prompt to structured LLM
+  return promptTemplate.pipe(structuredLlm)
 }
 
 // Enhanced fallback function for better text summarization
@@ -174,6 +173,7 @@ export async function summarizeRepository(readmeContent) {
     })
     
     console.log('OpenAI summarization successful')
+    console.log('Structured output result:', result)
     return result
   } catch (error) {
     console.error('OpenAI summarization failed:', error.message)
