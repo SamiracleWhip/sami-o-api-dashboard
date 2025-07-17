@@ -260,7 +260,7 @@ export default function Playground() {
                   <div className="mt-2 text-xs md:text-sm text-blue-800 space-y-1 md:space-y-2">
                     <p>• Copy an API key from your <Link href="/dashboards" className="underline hover:text-blue-900">Dashboard</Link></p>
                     <p>• Paste it in the input field above</p>
-                    <p>• Click "Validate Key" to check if it&apos;s active and accessible</p>
+                    <p>• Click &quot;Validate Key&quot; to check if it&apos;s active and accessible</p>
                     <p>• View detailed information about your API key usage and permissions</p>
                   </div>
                 </div>
