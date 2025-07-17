@@ -4,6 +4,7 @@ import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import Link from 'next/link'
+import { Github } from 'lucide-react'
 
 export default function Dashboard() {
   const { data: session, status } = useSession()
@@ -28,6 +29,19 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+      {/* Header */}
+      <header className="px-4 lg:px-6 h-14 flex items-center border-b bg-white dark:bg-gray-800">
+        <Link className="flex items-center justify-center hover:opacity-75 transition-opacity" href="/">
+          <Github className="h-6 w-6 mr-2" />
+          <span className="font-bold text-xl">Sami-O</span>
+        </Link>
+        <div className="ml-auto">
+          <span className="text-sm text-gray-600 dark:text-gray-300 mr-4">
+            Welcome, {session.user.name || session.user.email}
+          </span>
+        </div>
+      </header>
+
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
