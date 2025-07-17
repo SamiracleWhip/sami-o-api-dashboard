@@ -174,7 +174,7 @@ export default function Home() {
 
       <main className="flex-1 relative z-10">
         {/* Hero Section */}
-        <section className="w-full py-12 md:py-20 lg:py-32 xl:py-48">
+        <section className="w-full py-8 md:py-12 lg:py-20 xl:py-32">
           <div className="container px-4 md:px-6 mx-auto">
             <div className="flex flex-col items-center space-y-6 md:space-y-8 text-center">
               <div className="space-y-4 md:space-y-6">
