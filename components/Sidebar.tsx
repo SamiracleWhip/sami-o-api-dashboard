@@ -39,55 +39,59 @@ export default function Sidebar({ isMobile = false, isOpen = false, onClose }: S
   const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
 
+  // Determine if we're in mobile view or desktop view
+  const isMobileView = isMobile || isOpen;
+
   const sidebarClasses = `
-    ${isMobile ? 'fixed inset-y-0 left-0 z-50' : 'relative'}
-    ${isMobile && !isOpen ? '-translate-x-full' : 'translate-x-0'}
-    ${isCollapsed && !isMobile ? 'w-16' : 'w-64'}
-    bg-white border-r border-gray-200 transition-all duration-300 ease-in-out
-    flex flex-col h-full
+    ${isMobileView ? 'fixed inset-y-0 left-0 z-50' : 'hidden lg:flex lg:fixed lg:inset-y-0 lg:left-0 lg:z-30'}
+    ${isMobileView && !isOpen ? '-translate-x-full lg:translate-x-0' : 'translate-x-0'}
+    ${isCollapsed && !isMobileView ? 'w-16' : 'w-64'}
+    bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out
+    flex flex-col h-full shadow-lg lg:shadow-none
   `;
 
   return (
     <>
       {/* Mobile overlay */}
-      {isMobile && isOpen && (
+      {isMobileView && isOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={onClose}
         />
       )}
       
       <div className={sidebarClasses}>
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between p-4 lg:p-6 border-b border-gray-200 dark:border-gray-700 min-h-[64px]">
           {!isCollapsed && (
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">SM</span>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
+                <span className="text-white font-bold text-sm lg:text-base">SM</span>
               </div>
-              <span className="font-semibold text-gray-900">Sami-O</span>
+              <span className="font-semibold text-gray-900 dark:text-white text-lg lg:text-xl">Sami-O</span>
             </div>
           )}
           
-          {isMobile ? (
+          {/* Mobile close button or desktop collapse button */}
+          {isMobileView ? (
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-2 lg:p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors touch-manipulation"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5 lg:w-6 lg:h-6 text-gray-500 dark:text-gray-400" />
             </button>
           ) : (
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="hidden lg:flex p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
-              {isCollapsed ? <Menu className="w-5 h-5" /> : <X className="w-5 h-5" />}
+              {isCollapsed ? <Menu className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
             </button>
           )}
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="flex-1 p-4 lg:p-6 space-y-1 lg:space-y-2 overflow-y-auto">
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -96,26 +100,39 @@ export default function Sidebar({ isMobile = false, isOpen = false, onClose }: S
               <Link
                 key={item.name}
                 href={item.href}
+                onClick={() => isMobileView && onClose && onClose()}
                 className={`
-                  flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors
+                  flex items-center space-x-3 lg:space-x-4 px-3 lg:px-4 py-3 lg:py-4 rounded-lg transition-all duration-200 touch-manipulation
                   ${isActive 
-                    ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600' 
-                    : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+                    ? 'bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 border-r-2 border-blue-600 dark:border-blue-400 shadow-sm' 
+                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-300'
                   }
+                  ${isCollapsed && !isMobileView ? 'justify-center' : ''}
                 `}
               >
-                <Icon className="w-5 h-5 flex-shrink-0" />
-                {!isCollapsed && <span className="font-medium">{item.name}</span>}
+                <Icon className="w-5 h-5 lg:w-6 lg:h-6 flex-shrink-0" />
+                {(!isCollapsed || isMobileView) && (
+                  <span className="font-medium text-sm lg:text-base">{item.name}</span>
+                )}
+                {isActive && (!isCollapsed || isMobileView) && (
+                  <div className="ml-auto w-2 h-2 bg-blue-600 dark:bg-blue-400 rounded-full"></div>
+                )}
               </Link>
             );
           })}
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-200">
-          {!isCollapsed && (
-            <div className="text-xs text-gray-500 text-center">
-              © 2024 Sami-O
+        <div className="p-4 lg:p-6 border-t border-gray-200 dark:border-gray-700 mt-auto">
+          {(!isCollapsed || isMobileView) && (
+            <div className="text-xs lg:text-sm text-gray-500 dark:text-gray-400 text-center">
+              <p className="mb-1">© 2024 Sami-O</p>
+              <p className="text-xs">v1.0.0</p>
+            </div>
+          )}
+          {isCollapsed && !isMobileView && (
+            <div className="flex justify-center">
+              <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
             </div>
           )}
         </div>

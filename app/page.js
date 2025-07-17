@@ -21,21 +21,25 @@ import {
   Sparkles,
   Code2,
   Layers,
+  Menu,
+  X,
 } from "lucide-react"
 import Link from "next/link"
 import { useSession, signIn, signOut } from 'next-auth/react'
+import { useState } from 'react'
 
 export default function Home() {
   const { data: session, status } = useSession()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -inset-10 opacity-50">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500 rounded-full filter blur-xl opacity-20 animate-pulse"></div>
-          <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-blue-500 rounded-full filter blur-xl opacity-20 animate-pulse delay-1000"></div>
-          <div className="absolute bottom-1/4 left-1/2 w-96 h-96 bg-indigo-500 rounded-full filter blur-xl opacity-20 animate-pulse delay-2000"></div>
+          <div className="absolute top-1/4 left-1/4 w-48 h-48 md:w-96 md:h-96 bg-purple-500 rounded-full filter blur-xl opacity-20 animate-pulse"></div>
+          <div className="absolute top-3/4 right-1/4 w-48 h-48 md:w-96 md:h-96 bg-blue-500 rounded-full filter blur-xl opacity-20 animate-pulse delay-1000"></div>
+          <div className="absolute bottom-1/4 left-1/2 w-48 h-48 md:w-96 md:h-96 bg-indigo-500 rounded-full filter blur-xl opacity-20 animate-pulse delay-2000"></div>
         </div>
       </div>
 
@@ -45,9 +49,11 @@ export default function Home() {
           <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-400 rounded-lg flex items-center justify-center mr-3">
             <Github className="h-5 w-5 text-white" />
           </div>
-          <span className="font-bold text-xl text-white">Sami-O</span>
+          <span className="font-bold text-lg md:text-xl text-white">Sami-O</span>
         </Link>
-        <nav className="ml-auto flex gap-6 sm:gap-8">
+        
+        {/* Desktop Navigation */}
+        <nav className="ml-auto hidden md:flex gap-6 lg:gap-8">
           <Link className="text-sm font-medium hover:text-purple-300 text-white/80 transition-colors" href="#features">
             Features
           </Link>
@@ -58,13 +64,15 @@ export default function Home() {
             About
           </Link>
         </nav>
-        <div className="flex items-center gap-3 ml-6">
+        
+        {/* Desktop Auth Buttons */}
+        <div className="hidden md:flex items-center gap-3 ml-6">
           {session ? (
             <>
               <Link href="/dashboards">
                 <Button variant="ghost" size="sm" className="flex items-center gap-2 text-white hover:bg-white/10 border-white/20">
                   <Settings className="h-4 w-4" />
-                  Dashboard
+                  <span className="hidden lg:inline">Dashboard</span>
                 </Button>
               </Link>
               <Button 
@@ -74,7 +82,7 @@ export default function Home() {
                 className="flex items-center gap-2 border-white/20 text-white hover:bg-white/10"
               >
                 <User className="h-4 w-4" />
-                Sign Out
+                <span className="hidden lg:inline">Sign Out</span>
               </Button>
             </>
           ) : (
@@ -92,94 +100,166 @@ export default function Home() {
             </>
           )}
         </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          className="md:hidden ml-auto p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        >
+          {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
       </header>
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed top-16 left-0 right-0 bg-slate-900/95 backdrop-blur-md border-b border-white/10 z-50">
+          <nav className="px-4 py-4 space-y-4">
+            <Link 
+              className="block text-white/80 hover:text-purple-300 transition-colors py-2" 
+              href="#features"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Features
+            </Link>
+            <Link 
+              className="block text-white/80 hover:text-purple-300 transition-colors py-2" 
+              href="#pricing"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Pricing
+            </Link>
+            <Link 
+              className="block text-white/80 hover:text-purple-300 transition-colors py-2" 
+              href="#about"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              About
+            </Link>
+            <div className="pt-4 border-t border-white/10 space-y-3">
+              {session ? (
+                <>
+                  <Link href="/dashboards" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start text-white hover:bg-white/10">
+                      <Settings className="h-4 w-4 mr-2" />
+                      Dashboard
+                    </Button>
+                  </Link>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => { signOut(); setMobileMenuOpen(false); }}
+                    className="w-full justify-start border-white/20 text-white hover:bg-white/10"
+                  >
+                    <User className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link href="/auth/signin" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full text-white hover:bg-white/10">
+                      Login
+                    </Button>
+                  </Link>
+                  <Link href="/auth/signin" onClick={() => setMobileMenuOpen(false)}>
+                    <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0">
+                      Sign Up
+                    </Button>
+                  </Link>
+                </>
+              )}
+            </div>
+          </nav>
+        </div>
+      )}
 
       <main className="flex-1 relative z-10">
         {/* Hero Section */}
-        <section className="w-full py-20 md:py-32 lg:py-40 xl:py-48">
+        <section className="w-full py-12 md:py-20 lg:py-32 xl:py-48">
           <div className="container px-4 md:px-6 mx-auto">
-            <div className="flex flex-col items-center space-y-8 text-center">
-              <div className="space-y-6">
-                <Badge variant="secondary" className="mb-6 bg-white/10 text-white border-white/20 backdrop-blur-sm">
+            <div className="flex flex-col items-center space-y-6 md:space-y-8 text-center">
+              <div className="space-y-4 md:space-y-6">
+                <Badge variant="secondary" className="mb-4 md:mb-6 bg-white/10 text-white border-white/20 backdrop-blur-sm">
                   <Sparkles className="w-3 h-3 mr-1" />
                   AI-Powered GitHub Analysis
                 </Badge>
-                <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl text-white leading-tight">
+                <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-white leading-tight px-2">
                   Unlock Deep Insights from Any{" "}
                   <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent animate-pulse">
                     GitHub Repository
                   </span>
                 </h1>
-                <p className="mx-auto max-w-[700px] text-white/80 text-lg md:text-xl leading-relaxed">
+                <p className="mx-auto max-w-[700px] text-white/80 text-base md:text-lg lg:text-xl leading-relaxed px-4">
                   Get comprehensive summaries, track stars, discover cool facts, monitor pull requests, and stay updated
                   with version changes - all in one powerful dashboard.
                 </p>
               </div>
               
-              <div className="flex flex-col sm:flex-row gap-4 items-center">
+              <div className="flex flex-col sm:flex-row gap-3 md:gap-4 items-center px-4 w-full sm:w-auto">
                 {session ? (
-                  <Link href="/dashboards">
-                    <Button size="lg" className="h-12 px-8 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 transform hover:scale-105 transition-all duration-300 shadow-2xl">
+                  <Link href="/dashboards" className="w-full sm:w-auto">
+                    <Button size="lg" className="w-full sm:w-auto h-12 px-6 md:px-8 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 transform hover:scale-105 transition-all duration-300 shadow-2xl">
                       Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
                 ) : (
                   <Button 
                     size="lg" 
-                    className="h-12 px-8 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 transform hover:scale-105 transition-all duration-300 shadow-2xl"
+                    className="w-full sm:w-auto h-12 px-6 md:px-8 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 transform hover:scale-105 transition-all duration-300 shadow-2xl"
                     onClick={() => signIn('google')}
                   >
                     Start Analyzing <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 )}
-                <Button variant="outline" size="lg" className="h-12 px-8 bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm">
+                <Button variant="outline" size="lg" className="w-full sm:w-auto h-12 px-6 md:px-8 bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm">
                   View Demo
                 </Button>
               </div>
 
               {/* Enhanced Dashboard Preview */}
-              <div className="w-full max-w-5xl mt-12">
+              <div className="w-full max-w-5xl mt-8 md:mt-12 px-4">
                 <div className="relative">
-                  {/* Floating elements */}
-                  <div className="absolute -top-4 -left-4 w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-lg animate-bounce delay-1000 opacity-80"></div>
-                  <div className="absolute -top-2 -right-8 w-6 h-6 bg-gradient-to-br from-green-400 to-blue-400 rounded-full animate-bounce delay-2000 opacity-80"></div>
-                  <div className="absolute -bottom-6 left-8 w-4 h-4 bg-gradient-to-br from-pink-400 to-purple-400 rounded-full animate-bounce delay-500 opacity-80"></div>
+                  {/* Floating elements - hidden on small screens */}
+                  <div className="hidden md:block absolute -top-4 -left-4 w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-lg animate-bounce delay-1000 opacity-80"></div>
+                  <div className="hidden md:block absolute -top-2 -right-8 w-6 h-6 bg-gradient-to-br from-green-400 to-blue-400 rounded-full animate-bounce delay-2000 opacity-80"></div>
+                  <div className="hidden md:block absolute -bottom-6 left-8 w-4 h-4 bg-gradient-to-br from-pink-400 to-purple-400 rounded-full animate-bounce delay-500 opacity-80"></div>
                   
-                  <div className="rounded-2xl border border-white/20 shadow-2xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl p-8 relative overflow-hidden">
-                    {/* Stats overlay */}
-                    <div className="absolute top-4 right-4 flex gap-3">
-                      <div className="bg-green-500/20 text-green-300 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm">
-                        416 Live Visitors
+                  <div className="rounded-xl md:rounded-2xl border border-white/20 shadow-2xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl p-4 md:p-8 relative overflow-hidden">
+                    {/* Stats overlay - responsive positioning */}
+                    <div className="absolute top-2 right-2 md:top-4 md:right-4 flex gap-2 md:gap-3">
+                      <div className="bg-green-500/20 text-green-300 px-2 py-1 md:px-3 md:py-1 rounded-full text-xs font-medium backdrop-blur-sm">
+                        <span className="hidden sm:inline">416 Live Visitors</span>
+                        <span className="sm:hidden">416 Live</span>
                       </div>
-                      <div className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm">
-                        1.7M Unique
+                      <div className="bg-blue-500/20 text-blue-300 px-2 py-1 md:px-3 md:py-1 rounded-full text-xs font-medium backdrop-blur-sm">
+                        <span className="hidden sm:inline">1.7M Unique</span>
+                        <span className="sm:hidden">1.7M</span>
                       </div>
                     </div>
                     
-                    <div className="text-center space-y-6">
-                      <div className="flex items-center justify-center space-x-4">
-                        <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-400 rounded-2xl flex items-center justify-center shadow-lg">
-                          <Github className="h-8 w-8 text-white" />
+                    <div className="text-center space-y-4 md:space-y-6">
+                      <div className="flex items-center justify-center space-x-2 md:space-x-4">
+                        <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-purple-400 to-pink-400 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg">
+                          <Github className="h-6 w-6 md:h-8 md:w-8 text-white" />
                         </div>
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-indigo-400 rounded-xl flex items-center justify-center shadow-lg animate-pulse">
-                          <Code2 className="h-6 w-6 text-white" />
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-400 to-indigo-400 rounded-lg md:rounded-xl flex items-center justify-center shadow-lg animate-pulse">
+                          <Code2 className="h-5 w-5 md:h-6 md:w-6 text-white" />
                         </div>
-                        <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-teal-400 rounded-lg flex items-center justify-center shadow-lg animate-pulse delay-500">
-                          <Layers className="h-5 w-5 text-white" />
+                        <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-green-400 to-teal-400 rounded-md md:rounded-lg flex items-center justify-center shadow-lg animate-pulse delay-500">
+                          <Layers className="h-4 w-4 md:h-5 md:w-5 text-white" />
                         </div>
                       </div>
-                      <h3 className="text-2xl font-semibold text-white">Sami-O Dashboard</h3>
-                      <p className="text-white/70 max-w-md mx-auto">
+                      <h3 className="text-xl md:text-2xl font-semibold text-white">Sami-O Dashboard</h3>
+                      <p className="text-white/70 max-w-md mx-auto text-sm md:text-base px-4">
                         Comprehensive GitHub repository analysis with AI-powered insights, star tracking, and more.
                       </p>
                       
                       {/* Mini chart visualization */}
-                      <div className="flex justify-center mt-6">
-                        <div className="flex items-end space-x-1 h-12">
+                      <div className="flex justify-center mt-4 md:mt-6">
+                        <div className="flex items-end space-x-1 h-8 md:h-12">
                           {[40, 60, 35, 80, 45, 75, 55, 90, 65].map((height, i) => (
                             <div
                               key={i}
-                              className="w-3 bg-gradient-to-t from-purple-400 to-pink-400 rounded-sm animate-pulse"
+                              className="w-2 md:w-3 bg-gradient-to-t from-purple-400 to-pink-400 rounded-sm animate-pulse"
                               style={{ height: `${height}%`, animationDelay: `${i * 100}ms` }}
                             />
                           ))}
@@ -194,52 +274,52 @@ export default function Home() {
         </section>
 
         {/* Features Section */}
-        <section id="features" className="w-full py-20 md:py-32 relative">
+        <section id="features" className="w-full py-16 md:py-20 lg:py-32 relative">
           <div className="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
           <div className="container px-4 md:px-6 mx-auto relative z-10">
-            <div className="flex flex-col items-center justify-center space-y-8 text-center mb-16">
+            <div className="flex flex-col items-center justify-center space-y-6 md:space-y-8 text-center mb-12 md:mb-16">
               <Badge variant="outline" className="border-white/20 text-white bg-white/5 backdrop-blur-sm">Features</Badge>
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl text-white">
+              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl lg:text-5xl text-white px-4">
                 Everything You Need to Understand GitHub Repositories
               </h2>
-              <p className="max-w-[900px] text-white/70 text-lg leading-relaxed">
+              <p className="max-w-[900px] text-white/70 text-base md:text-lg leading-relaxed px-4">
                 Our AI-powered platform provides comprehensive insights that help developers, project managers, and
                 teams make informed decisions.
               </p>
             </div>
             
-            <div className="grid gap-8 lg:grid-cols-2 lg:gap-16 max-w-6xl mx-auto">
-              <div className="space-y-8">
+            <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 xl:gap-16 max-w-6xl mx-auto">
+              <div className="space-y-6 md:space-y-8">
                 {[
                   { icon: FileText, title: "Smart Repository Summaries", desc: "Get AI-generated summaries that capture the essence, purpose, and key features of any repository." },
                   { icon: Star, title: "Star Tracking & Analytics", desc: "Monitor star growth, identify trending patterns, and understand repository popularity over time." },
                   { icon: Zap, title: "Cool Facts Discovery", desc: "Uncover interesting statistics, contributor insights, and unique repository characteristics." }
                 ].map((feature, i) => (
-                  <div key={i} className="flex items-start space-x-4 group">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-purple-400/20 to-pink-400/20 border border-white/10 backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
-                      <feature.icon className="h-7 w-7 text-purple-300" />
+                  <div key={i} className="flex items-start space-x-3 md:space-x-4 group px-4 lg:px-0">
+                    <div className="flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-lg md:rounded-xl bg-gradient-to-br from-purple-400/20 to-pink-400/20 border border-white/10 backdrop-blur-sm group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+                      <feature.icon className="h-6 w-6 md:h-7 md:w-7 text-purple-300" />
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-xl font-bold text-white">{feature.title}</h3>
-                      <p className="text-white/70">{feature.desc}</p>
+                      <h3 className="text-lg md:text-xl font-bold text-white">{feature.title}</h3>
+                      <p className="text-white/70 text-sm md:text-base">{feature.desc}</p>
                     </div>
                   </div>
                 ))}
               </div>
               
-              <div className="space-y-8">
+              <div className="space-y-6 md:space-y-8">
                 {[
                   { icon: GitPullRequest, title: "Important PR Monitoring", desc: "Stay updated with the latest significant pull requests and their impact on the project." },
                   { icon: TrendingUp, title: "Version Update Alerts", desc: "Get notified about new releases, version changes, and breaking updates automatically." },
                   { icon: BarChart3, title: "Advanced Analytics", desc: "Comprehensive dashboards with charts, graphs, and detailed metrics for deep analysis." }
                 ].map((feature, i) => (
-                  <div key={i} className="flex items-start space-x-4 group">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-blue-400/20 to-indigo-400/20 border border-white/10 backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
-                      <feature.icon className="h-7 w-7 text-blue-300" />
+                  <div key={i} className="flex items-start space-x-3 md:space-x-4 group px-4 lg:px-0">
+                    <div className="flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-lg md:rounded-xl bg-gradient-to-br from-blue-400/20 to-indigo-400/20 border border-white/10 backdrop-blur-sm group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+                      <feature.icon className="h-6 w-6 md:h-7 md:w-7 text-blue-300" />
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-xl font-bold text-white">{feature.title}</h3>
-                      <p className="text-white/70">{feature.desc}</p>
+                      <h3 className="text-lg md:text-xl font-bold text-white">{feature.title}</h3>
+                      <p className="text-white/70 text-sm md:text-base">{feature.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -249,32 +329,32 @@ export default function Home() {
         </section>
 
         {/* Pricing Section */}
-        <section id="pricing" className="w-full py-20 md:py-32">
+        <section id="pricing" className="w-full py-16 md:py-20 lg:py-32">
           <div className="container px-4 md:px-6 mx-auto">
-            <div className="flex flex-col items-center justify-center space-y-8 text-center mb-16">
+            <div className="flex flex-col items-center justify-center space-y-6 md:space-y-8 text-center mb-12 md:mb-16">
               <Badge variant="outline" className="border-white/20 text-white bg-white/5 backdrop-blur-sm">Pricing</Badge>
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl text-white">Choose Your Plan</h2>
-              <p className="max-w-[900px] text-white/70 text-lg leading-relaxed">
+              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl lg:text-5xl text-white px-4">Choose Your Plan</h2>
+              <p className="max-w-[900px] text-white/70 text-base md:text-lg leading-relaxed px-4">
                 Start free and scale as you grow. All plans include our core features with different usage limits.
               </p>
             </div>
             
-            <div className="grid gap-8 md:grid-cols-3 max-w-6xl mx-auto">
+            <div className="grid gap-6 md:gap-8 md:grid-cols-3 max-w-6xl mx-auto">
               {/* Free Tier */}
               <Card className="relative bg-white/5 border-white/10 backdrop-blur-xl hover:bg-white/10 transition-all duration-300 transform hover:scale-105">
                 <CardHeader className="text-center">
-                  <CardTitle className="text-2xl text-white">Free</CardTitle>
+                  <CardTitle className="text-xl md:text-2xl text-white">Free</CardTitle>
                   <CardDescription className="text-white/70">Perfect for getting started</CardDescription>
-                  <div className="text-4xl font-bold text-white">
+                  <div className="text-3xl md:text-4xl font-bold text-white">
                     $0<span className="text-base font-normal text-white/60">/month</span>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <ul className="space-y-3">
+                <CardContent className="space-y-3 md:space-y-4">
+                  <ul className="space-y-2 md:space-y-3">
                     {["5 repository analyses per month", "Basic summaries and insights", "Star tracking", "Email support"].map((feature, i) => (
                       <li key={i} className="flex items-center">
-                        <Check className="h-4 w-4 text-green-400 mr-3" />
-                        <span className="text-white/80 text-sm">{feature}</span>
+                        <Check className="h-4 w-4 text-green-400 mr-3 flex-shrink-0" />
+                        <span className="text-white/80 text-sm md:text-base">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -302,18 +382,18 @@ export default function Home() {
               <Card className="relative bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-purple-400/30 backdrop-blur-xl transform scale-105 shadow-2xl">
                 <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-400 to-pink-400 text-white border-0">Most Popular</Badge>
                 <CardHeader className="text-center">
-                  <CardTitle className="text-2xl text-white">Pro</CardTitle>
+                  <CardTitle className="text-xl md:text-2xl text-white">Pro</CardTitle>
                   <CardDescription className="text-white/70">For serious developers and teams</CardDescription>
-                  <div className="text-4xl font-bold text-white">
+                  <div className="text-3xl md:text-4xl font-bold text-white">
                     $19<span className="text-base font-normal text-white/60">/month</span>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <ul className="space-y-3">
+                <CardContent className="space-y-3 md:space-y-4">
+                  <ul className="space-y-2 md:space-y-3">
                     {["100 repository analyses per month", "Advanced AI insights and cool facts", "PR monitoring and alerts", "Version update notifications", "Priority support", "API access"].map((feature, i) => (
                       <li key={i} className="flex items-center">
-                        <Check className="h-4 w-4 text-green-400 mr-3" />
-                        <span className="text-white/80 text-sm">{feature}</span>
+                        <Check className="h-4 w-4 text-green-400 mr-3 flex-shrink-0" />
+                        <span className="text-white/80 text-sm md:text-base">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -337,18 +417,18 @@ export default function Home() {
               {/* Enterprise Tier */}
               <Card className="relative bg-white/5 border-white/10 backdrop-blur-xl hover:bg-white/10 transition-all duration-300 transform hover:scale-105">
                 <CardHeader className="text-center">
-                  <CardTitle className="text-2xl text-white">Enterprise</CardTitle>
+                  <CardTitle className="text-xl md:text-2xl text-white">Enterprise</CardTitle>
                   <CardDescription className="text-white/70">For large teams and organizations</CardDescription>
-                  <div className="text-4xl font-bold text-white">
+                  <div className="text-3xl md:text-4xl font-bold text-white">
                     $99<span className="text-base font-normal text-white/60">/month</span>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <ul className="space-y-3">
+                <CardContent className="space-y-3 md:space-y-4">
+                  <ul className="space-y-2 md:space-y-3">
                     {["Unlimited repository analyses", "Custom AI models and insights", "Advanced analytics dashboard", "Team collaboration features", "24/7 dedicated support", "Custom integrations"].map((feature, i) => (
                       <li key={i} className="flex items-center">
-                        <Check className="h-4 w-4 text-green-400 mr-3" />
-                        <span className="text-white/80 text-sm">{feature}</span>
+                        <Check className="h-4 w-4 text-green-400 mr-3 flex-shrink-0" />
+                        <span className="text-white/80 text-sm md:text-base">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -364,24 +444,24 @@ export default function Home() {
         </section>
 
         {/* CTA Section */}
-        <section className="w-full py-20 md:py-32 relative">
+        <section className="w-full py-16 md:py-20 lg:py-32 relative">
           <div className="absolute inset-0 bg-gradient-to-r from-purple-900/50 to-pink-900/50 backdrop-blur-sm"></div>
           <div className="container px-4 md:px-6 mx-auto relative z-10">
-            <div className="flex flex-col items-center justify-center space-y-8 text-center">
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl text-white">
+            <div className="flex flex-col items-center justify-center space-y-6 md:space-y-8 text-center">
+              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl lg:text-5xl text-white px-4">
                 Ready to Analyze Your First Repository?
               </h2>
-              <p className="max-w-[600px] text-white/70 text-lg leading-relaxed">
+              <p className="max-w-[600px] text-white/70 text-base md:text-lg leading-relaxed px-4">
                 Join thousands of developers who trust Sami-O for their GitHub repository insights.
               </p>
-              <div className="w-full max-w-md space-y-4">
-                <div className="flex gap-3">
+              <div className="w-full max-w-md space-y-4 px-4">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <Input 
                     type="email" 
                     placeholder="Enter your email" 
                     className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-white/50 backdrop-blur-sm" 
                   />
-                  <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0">
+                  <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 w-full sm:w-auto">
                     Get Started
                   </Button>
                 </div>
@@ -397,21 +477,21 @@ export default function Home() {
         </section>
 
         {/* Stats Section */}
-        <section className="w-full py-20 md:py-32">
+        <section className="w-full py-16 md:py-20 lg:py-32">
           <div className="container px-4 md:px-6 mx-auto">
-            <div className="grid gap-8 lg:grid-cols-3 max-w-6xl mx-auto">
+            <div className="grid gap-8 md:gap-12 lg:grid-cols-3 max-w-6xl mx-auto">
               {[
                 { icon: Github, value: "10K+", label: "Repositories Analyzed", gradient: "from-purple-400 to-pink-400" },
                 { icon: Shield, value: "99.9%", label: "Uptime Guarantee", gradient: "from-blue-400 to-indigo-400" },
                 { icon: Clock, value: "<5s", label: "Average Analysis Time", gradient: "from-green-400 to-teal-400" }
               ].map((stat, i) => (
-                <div key={i} className="flex flex-col items-center space-y-6 text-center group">
-                  <div className={`flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br ${stat.gradient} shadow-2xl group-hover:scale-110 transition-transform duration-300`}>
-                    <stat.icon className="h-10 w-10 text-white" />
+                <div key={i} className="flex flex-col items-center space-y-4 md:space-y-6 text-center group">
+                  <div className={`flex h-16 w-16 md:h-20 md:w-20 items-center justify-center rounded-xl md:rounded-2xl bg-gradient-to-br ${stat.gradient} shadow-2xl group-hover:scale-110 transition-transform duration-300`}>
+                    <stat.icon className="h-8 w-8 md:h-10 md:w-10 text-white" />
                   </div>
                   <div className="space-y-2">
-                    <h3 className="text-4xl font-bold text-white">{stat.value}</h3>
-                    <p className="text-white/70">{stat.label}</p>
+                    <h3 className="text-3xl md:text-4xl font-bold text-white">{stat.value}</h3>
+                    <p className="text-white/70 text-sm md:text-base">{stat.label}</p>
                   </div>
                 </div>
               ))}
@@ -421,11 +501,11 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="py-8 w-full border-t border-white/10 backdrop-blur-md bg-white/5 relative z-10">
+      <footer className="py-6 md:py-8 w-full border-t border-white/10 backdrop-blur-md bg-white/5 relative z-10">
         <div className="container px-4 md:px-6 mx-auto">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-white/50">© 2024 Sami-O Github Analyzer. All rights reserved.</p>
-            <nav className="flex gap-6">
+            <p className="text-xs text-white/50 text-center sm:text-left">© 2024 Sami-O Github Analyzer. All rights reserved.</p>
+            <nav className="flex flex-wrap gap-4 md:gap-6 justify-center sm:justify-end">
               {["Terms of Service", "Privacy Policy", "Contact"].map((link, i) => (
                 <Link key={i} className="text-xs hover:text-white/70 text-white/50 transition-colors" href={`/${link.toLowerCase().replace(/\s+/g, '-')}`}>
                   {link}
