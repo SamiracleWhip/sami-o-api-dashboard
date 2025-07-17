@@ -1,117 +1,472 @@
 'use client'
 
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import {
+  Github,
+  Star,
+  GitPullRequest,
+  BarChart3,
+  Zap,
+  Shield,
+  Check,
+  ArrowRight,
+  TrendingUp,
+  FileText,
+  Clock,
+  User,
+  Settings,
+} from "lucide-react"
+import Link from "next/link"
 import { useSession, signIn, signOut } from 'next-auth/react'
-import { useState } from 'react'
-import Link from 'next/link'
 
 export default function Home() {
   const { data: session, status } = useSession()
 
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-      </div>
-    )
-  }
-
-  if (session) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
-              <div className="text-center mb-8">
-                <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                  Welcome to Sami-O API Dashboard
-                </h1>
-                <p className="text-lg text-gray-600 dark:text-gray-300">
-                  You&apos;re signed in as <span className="font-semibold">{session.user.email}</span>
-                </p>
-                
-                {session.user.image && (
-                  <div className="mt-4 flex justify-center">
-                    <img 
-                      src={session.user.image} 
-                      alt="Profile" 
-                      className="h-16 w-16 rounded-full border-4 border-blue-500"
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <Link href="/api-keys">
-                  <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200 shadow-md hover:shadow-lg">
-                    Manage API Keys
-                  </button>
-                </Link>
-                
-                <Link href="/landing">
-                  <button className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200 shadow-md hover:shadow-lg">
-                    View Landing Page
-                  </button>
-                </Link>
-                
-                <button 
-                  onClick={() => signOut()}
-                  className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200 shadow-md hover:shadow-lg"
-                >
-                  Sign Out
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
-            <div className="text-center">
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
-                Welcome to Sami-O API Dashboard
-              </h1>
-              <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
-                Access your GitHub repository analysis APIs with secure authentication
-              </p>
-              
-              <div className="space-y-4">
-                <button
-                  onClick={() => signIn('google')}
-                  className="w-full max-w-sm mx-auto flex items-center justify-center px-6 py-3 border border-gray-300 rounded-lg shadow-md bg-white hover:bg-gray-50 transition duration-200"
-                >
-                  <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                  </svg>
-                  Sign in with Google
-                </button>
-                
-                <div className="flex space-x-4 justify-center">
-                  <Link href="/auth/signin">
-                    <button className="px-6 py-2 text-blue-600 hover:text-blue-700 font-medium transition duration-200">
-                      Sign In Page
-                    </button>
+    <div className="flex flex-col min-h-screen">
+      {/* Header */}
+      <header className="px-4 lg:px-6 h-14 flex items-center border-b">
+        <Link className="flex items-center justify-center" href="/">
+          <Github className="h-6 w-6 mr-2" />
+          <span className="font-bold text-xl">Sami-O</span>
+        </Link>
+        <nav className="ml-auto flex gap-4 sm:gap-6">
+          <Link className="text-sm font-medium hover:underline underline-offset-4" href="#features">
+            Features
+          </Link>
+          <Link className="text-sm font-medium hover:underline underline-offset-4" href="#pricing">
+            Pricing
+          </Link>
+          <Link className="text-sm font-medium hover:underline underline-offset-4" href="#about">
+            About
+          </Link>
+        </nav>
+        <div className="flex items-center gap-2 ml-4">
+          {session ? (
+            <>
+              <Link href="/dashboard">
+                <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  Dashboard
+                </Button>
+              </Link>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => signOut()}
+                className="flex items-center gap-2"
+              >
+                <User className="h-4 w-4" />
+                Sign Out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link href="/auth/signin">
+                <Button variant="ghost" size="sm">
+                  Login
+                </Button>
+              </Link>
+              <Link href="/auth/signin">
+                <Button size="sm">Sign Up</Button>
+              </Link>
+            </>
+          )}
+        </div>
+      </header>
+
+      <main className="flex-1">
+        {/* Hero Section */}
+        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center space-y-4 text-center">
+              <div className="space-y-2">
+                <Badge variant="secondary" className="mb-4">
+                  <Zap className="w-3 h-3 mr-1" />
+                  AI-Powered GitHub Analysis
+                </Badge>
+                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
+                  Unlock Deep Insights from Any <span className="text-primary">GitHub Repository</span>
+                </h1>
+                <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
+                  Get comprehensive summaries, track stars, discover cool facts, monitor pull requests, and stay updated
+                  with version changes - all in one powerful dashboard.
+                </p>
+              </div>
+              <div className="space-x-4">
+                {session ? (
+                  <Link href="/dashboard">
+                    <Button size="lg" className="h-11 px-8">
+                      Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
                   </Link>
-                  
-                  <Link href="/landing">
-                    <button className="px-6 py-2 text-green-600 hover:text-green-700 font-medium transition duration-200">
-                      View Landing Page
-                    </button>
-                  </Link>
+                ) : (
+                  <Button 
+                    size="lg" 
+                    className="h-11 px-8"
+                    onClick={() => signIn('google')}
+                  >
+                    Start Analyzing <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                )}
+                <Button variant="outline" size="lg" className="h-11 px-8 bg-transparent">
+                  View Demo
+                </Button>
+              </div>
+              <div className="w-full max-w-4xl mt-8">
+                <div className="rounded-lg border shadow-lg bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-8 flex items-center justify-center min-h-[400px]">
+                  <div className="text-center space-y-4">
+                    <Github className="h-24 w-24 mx-auto text-muted-foreground" />
+                    <h3 className="text-2xl font-semibold">Sami-O Dashboard</h3>
+                    <p className="text-muted-foreground max-w-md">
+                      Comprehensive GitHub repository analysis with AI-powered insights, star tracking, and more.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </section>
+
+        {/* Features Section */}
+        <section id="features" className="w-full py-12 md:py-24 lg:py-32 bg-muted/50">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center">
+              <div className="space-y-2">
+                <Badge variant="outline">Features</Badge>
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">
+                  Everything You Need to Understand GitHub Repositories
+                </h2>
+                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                  Our AI-powered platform provides comprehensive insights that help developers, project managers, and
+                  teams make informed decisions.
+                </p>
+              </div>
+            </div>
+            <div className="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:grid-cols-2 lg:gap-12">
+              <div className="flex flex-col justify-center space-y-4">
+                <div className="grid gap-6">
+                  <div className="flex items-start space-x-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                      <FileText className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-bold">Smart Repository Summaries</h3>
+                      <p className="text-muted-foreground">
+                        Get AI-generated summaries that capture the essence, purpose, and key features of any
+                        repository.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                      <Star className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-bold">Star Tracking & Analytics</h3>
+                      <p className="text-muted-foreground">
+                        Monitor star growth, identify trending patterns, and understand repository popularity over time.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                      <Zap className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-bold">Cool Facts Discovery</h3>
+                      <p className="text-muted-foreground">
+                        Uncover interesting statistics, contributor insights, and unique repository characteristics.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-col justify-center space-y-4">
+                <div className="grid gap-6">
+                  <div className="flex items-start space-x-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                      <GitPullRequest className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-bold">Important PR Monitoring</h3>
+                      <p className="text-muted-foreground">
+                        Stay updated with the latest significant pull requests and their impact on the project.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                      <TrendingUp className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-bold">Version Update Alerts</h3>
+                      <p className="text-muted-foreground">
+                        Get notified about new releases, version changes, and breaking updates automatically.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                      <BarChart3 className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-bold">Advanced Analytics</h3>
+                      <p className="text-muted-foreground">
+                        Comprehensive dashboards with charts, graphs, and detailed metrics for deep analysis.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Pricing Section */}
+        <section id="pricing" className="w-full py-12 md:py-24 lg:py-32">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center">
+              <div className="space-y-2">
+                <Badge variant="outline">Pricing</Badge>
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Choose Your Plan</h2>
+                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                  Start free and scale as you grow. All plans include our core features with different usage limits.
+                </p>
+              </div>
+            </div>
+            <div className="grid gap-6 mt-12 md:grid-cols-3 md:gap-8">
+              {/* Free Tier */}
+              <Card className="relative">
+                <CardHeader>
+                  <CardTitle className="text-2xl">Free</CardTitle>
+                  <CardDescription>Perfect for getting started</CardDescription>
+                  <div className="text-4xl font-bold">
+                    $0<span className="text-base font-normal text-muted-foreground">/month</span>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <ul className="space-y-2">
+                    <li className="flex items-center">
+                      <Check className="h-4 w-4 text-green-500 mr-2" />
+                      <span className="text-sm">5 repository analyses per month</span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="h-4 w-4 text-green-500 mr-2" />
+                      <span className="text-sm">Basic summaries and insights</span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="h-4 w-4 text-green-500 mr-2" />
+                      <span className="text-sm">Star tracking</span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="h-4 w-4 text-green-500 mr-2" />
+                      <span className="text-sm">Email support</span>
+                    </li>
+                  </ul>
+                </CardContent>
+                <CardFooter>
+                  {session ? (
+                    <Link href="/dashboard" className="w-full">
+                      <Button className="w-full bg-transparent" variant="outline">
+                        Access Dashboard
+                      </Button>
+                    </Link>
+                  ) : (
+                    <Button 
+                      className="w-full bg-transparent" 
+                      variant="outline"
+                      onClick={() => signIn('google')}
+                    >
+                      Get Started Free
+                    </Button>
+                  )}
+                </CardFooter>
+              </Card>
+
+              {/* Pro Tier */}
+              <Card className="relative border-primary">
+                <Badge className="absolute -top-2 left-1/2 -translate-x-1/2">Most Popular</Badge>
+                <CardHeader>
+                  <CardTitle className="text-2xl">Pro</CardTitle>
+                  <CardDescription>For serious developers and teams</CardDescription>
+                  <div className="text-4xl font-bold">
+                    $19<span className="text-base font-normal text-muted-foreground">/month</span>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <ul className="space-y-2">
+                    <li className="flex items-center">
+                      <Check className="h-4 w-4 text-green-500 mr-2" />
+                      <span className="text-sm">100 repository analyses per month</span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="h-4 w-4 text-green-500 mr-2" />
+                      <span className="text-sm">Advanced AI insights and cool facts</span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="h-4 w-4 text-green-500 mr-2" />
+                      <span className="text-sm">PR monitoring and alerts</span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="h-4 w-4 text-green-500 mr-2" />
+                      <span className="text-sm">Version update notifications</span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="h-4 w-4 text-green-500 mr-2" />
+                      <span className="text-sm">Priority support</span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="h-4 w-4 text-green-500 mr-2" />
+                      <span className="text-sm">API access</span>
+                    </li>
+                  </ul>
+                </CardContent>
+                <CardFooter>
+                  {session ? (
+                    <Link href="/dashboard" className="w-full">
+                      <Button className="w-full">Access Dashboard</Button>
+                    </Link>
+                  ) : (
+                    <Button 
+                      className="w-full"
+                      onClick={() => signIn('google')}
+                    >
+                      Start Pro Trial
+                    </Button>
+                  )}
+                </CardFooter>
+              </Card>
+
+              {/* Enterprise Tier */}
+              <Card className="relative">
+                <CardHeader>
+                  <CardTitle className="text-2xl">Enterprise</CardTitle>
+                  <CardDescription>For large teams and organizations</CardDescription>
+                  <div className="text-4xl font-bold">
+                    $99<span className="text-base font-normal text-muted-foreground">/month</span>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <ul className="space-y-2">
+                    <li className="flex items-center">
+                      <Check className="h-4 w-4 text-green-500 mr-2" />
+                      <span className="text-sm">Unlimited repository analyses</span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="h-4 w-4 text-green-500 mr-2" />
+                      <span className="text-sm">Custom AI models and insights</span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="h-4 w-4 text-green-500 mr-2" />
+                      <span className="text-sm">Advanced analytics dashboard</span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="h-4 w-4 text-green-500 mr-2" />
+                      <span className="text-sm">Team collaboration features</span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="h-4 w-4 text-green-500 mr-2" />
+                      <span className="text-sm">24/7 dedicated support</span>
+                    </li>
+                    <li className="flex items-center">
+                      <Check className="h-4 w-4 text-green-500 mr-2" />
+                      <span className="text-sm">Custom integrations</span>
+                    </li>
+                  </ul>
+                </CardContent>
+                <CardFooter>
+                  <Button className="w-full bg-transparent" variant="outline">
+                    Contact Sales
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted/50">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center">
+              <div className="space-y-2">
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">
+                  Ready to Analyze Your First Repository?
+                </h2>
+                <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                  Join thousands of developers who trust Sami-O for their GitHub repository insights.
+                </p>
+              </div>
+              <div className="w-full max-w-sm space-y-2">
+                <form className="flex gap-2">
+                  <Input type="email" placeholder="Enter your email" className="max-w-lg flex-1" />
+                  <Button type="submit">Get Started</Button>
+                </form>
+                <p className="text-xs text-muted-foreground">
+                  Start with our free tier. No credit card required.{" "}
+                  <Link href="/terms" className="underline underline-offset-2">
+                    Terms & Conditions
+                  </Link>
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Stats Section */}
+        <section className="w-full py-12 md:py-24 lg:py-32">
+          <div className="container px-4 md:px-6">
+            <div className="grid gap-6 lg:grid-cols-3 lg:gap-12">
+              <div className="flex flex-col items-center space-y-4 text-center">
+                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
+                  <Github className="h-10 w-10 text-primary" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-3xl font-bold">10K+</h3>
+                  <p className="text-muted-foreground">Repositories Analyzed</p>
+                </div>
+              </div>
+              <div className="flex flex-col items-center space-y-4 text-center">
+                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
+                  <Shield className="h-10 w-10 text-primary" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-3xl font-bold">99.9%</h3>
+                  <p className="text-muted-foreground">Uptime Guarantee</p>
+                </div>
+              </div>
+              <div className="flex flex-col items-center space-y-4 text-center">
+                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
+                  <Clock className="h-10 w-10 text-primary" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-3xl font-bold">{"<5s"}</h3>
+                  <p className="text-muted-foreground">Average Analysis Time</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
+        <p className="text-xs text-muted-foreground">© 2024 Sami-O Github Analyzer. All rights reserved.</p>
+        <nav className="sm:ml-auto flex gap-4 sm:gap-6">
+          <Link className="text-xs hover:underline underline-offset-4" href="/terms">
+            Terms of Service
+          </Link>
+          <Link className="text-xs hover:underline underline-offset-4" href="/privacy">
+            Privacy Policy
+          </Link>
+          <Link className="text-xs hover:underline underline-offset-4" href="/contact">
+            Contact
+          </Link>
+        </nav>
+      </footer>
     </div>
   )
 }
