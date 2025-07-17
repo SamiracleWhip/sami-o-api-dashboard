@@ -23,6 +23,11 @@ import {
   Layers,
   Menu,
   X,
+  Play,
+  Edit3,
+  BookOpen,
+  Copy,
+  Loader2,
 } from "lucide-react"
 import Link from "next/link"
 import { useSession, signIn, signOut } from 'next-auth/react'
@@ -31,6 +36,53 @@ import { useState } from 'react'
 export default function Home() {
   const { data: session, status } = useSession()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [apiResponse, setApiResponse] = useState(null)
+  const [error, setError] = useState(null)
+  const [isEditing, setIsEditing] = useState(false)
+  const [apiKey, setApiKey] = useState('')
+  const [jsonPayload, setJsonPayload] = useState(`{
+  "githubUrl": "https://github.com/langchain-ai/langchain"
+}`)
+
+  const handleApiRequest = async () => {
+    setIsLoading(true)
+    setError(null)
+    setApiResponse(null)
+
+    try {
+      if (!apiKey) {
+        throw new Error('API key is required. Please sign up to get your free API key.')
+      }
+
+      const payload = JSON.parse(jsonPayload)
+      const response = await fetch('/api/github-summarizer', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+        },
+        body: JSON.stringify(payload)
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      setApiResponse(data)
+    } catch (err) {
+      console.error('API Request failed:', err)
+      setError(err.message)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text)
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
@@ -70,7 +122,7 @@ export default function Home() {
           {session ? (
             <>
               <Link href="/dashboards">
-                <Button variant="ghost" size="sm" className="flex items-center gap-2 text-white hover:bg-white/10 border-white/20">
+                <Button variant="ghost" size="sm" className="flex items-center gap-2 text-purple-200 hover:bg-purple-500/20 hover:text-purple-100">
                   <Settings className="h-4 w-4" />
                   <span className="hidden lg:inline">Dashboard</span>
                 </Button>
@@ -79,7 +131,7 @@ export default function Home() {
                 variant="outline" 
                 size="sm" 
                 onClick={() => signOut()}
-                className="flex items-center gap-2 border-white/20 text-white hover:bg-white/10"
+                className="flex items-center gap-2 border-purple-400/40 text-purple-200 hover:bg-purple-500/20 hover:text-purple-100"
               >
                 <User className="h-4 w-4" />
                 <span className="hidden lg:inline">Sign Out</span>
@@ -88,7 +140,7 @@ export default function Home() {
           ) : (
             <>
               <Link href="/auth/signin">
-                <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
+                <Button variant="ghost" size="sm" className="text-purple-200 hover:bg-purple-500/20 hover:text-purple-100">
                   Login
                 </Button>
               </Link>
@@ -139,7 +191,7 @@ export default function Home() {
               {session ? (
                 <>
                   <Link href="/dashboards" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start text-white hover:bg-white/10">
+                    <Button variant="ghost" className="w-full justify-start text-purple-200 hover:bg-purple-500/20 hover:text-purple-100">
                       <Settings className="h-4 w-4 mr-2" />
                       Dashboard
                     </Button>
@@ -147,7 +199,7 @@ export default function Home() {
                   <Button 
                     variant="outline" 
                     onClick={() => { signOut(); setMobileMenuOpen(false); }}
-                    className="w-full justify-start border-white/20 text-white hover:bg-white/10"
+                    className="w-full justify-start border-purple-400/40 text-purple-200 hover:bg-purple-500/20 hover:text-purple-100"
                   >
                     <User className="h-4 w-4 mr-2" />
                     Sign Out
@@ -156,7 +208,7 @@ export default function Home() {
               ) : (
                 <>
                   <Link href="/auth/signin" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full text-white hover:bg-white/10">
+                    <Button variant="ghost" className="w-full text-purple-200 hover:bg-purple-500/20 hover:text-purple-100">
                       Login
                     </Button>
                   </Link>
@@ -210,7 +262,7 @@ export default function Home() {
                     Start Analyzing <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 )}
-                <Button variant="outline" size="lg" className="w-full sm:w-auto h-12 px-6 md:px-8 bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm">
+                <Button variant="outline" size="lg" className="w-full sm:w-auto h-12 px-6 md:px-8 bg-purple-900/20 border-purple-400/40 text-purple-200 hover:bg-purple-500/20 hover:text-purple-100 backdrop-blur-sm">
                   View Demo
                 </Button>
               </div>
@@ -328,6 +380,226 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Interactive API Demo Section */}
+        <section className="w-full py-16 md:py-20 lg:py-32 relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-900/50 to-pink-900/50 backdrop-blur-sm"></div>
+          <div className="container px-4 md:px-6 mx-auto relative z-10">
+            <div className="flex flex-col items-center justify-center space-y-6 md:space-y-8 text-center mb-8">
+              <Badge variant="outline" className="border-white/20 text-white bg-white/5 backdrop-blur-sm">Live API Demo</Badge>
+              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl lg:text-5xl text-white px-4">
+                Try Our GitHub Summarizer API
+              </h2>
+              <p className="max-w-[900px] text-white/70 text-base md:text-lg leading-relaxed px-4">
+                Test our AI-powered GitHub analysis API. Sign up for free to get your API key and start analyzing repositories.
+              </p>
+              <div className="flex gap-3">
+                <Button variant="outline" className="flex items-center gap-2 border-purple-400/40 text-purple-200 hover:bg-purple-500/20 hover:text-purple-100">
+                  <BookOpen className="h-4 w-4" />
+                  Documentation
+                </Button>
+                {!session && (
+                  <Button 
+                    onClick={() => signIn('google')} 
+                    className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0"
+                  >
+                    Get Free API Key
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-2 max-w-6xl mx-auto">
+              {/* Request Panel */}
+              <Card className="h-fit bg-white/5 border-white/10 backdrop-blur-xl">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2 text-purple-100">
+                      <Play className="h-5 w-5 text-purple-400" />
+                      API Request
+                    </CardTitle>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsEditing(!isEditing)}
+                        className="flex items-center gap-1 border-purple-400/40 text-purple-200 hover:bg-purple-500/20 hover:text-purple-100"
+                      >
+                        <Edit3 className="h-3 w-3" />
+                        {isEditing ? 'Preview' : 'Edit'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copyToClipboard(jsonPayload)}
+                        className="flex items-center gap-1 border-purple-400/40 text-purple-200 hover:bg-purple-500/20 hover:text-purple-100"
+                      >
+                        <Copy className="h-3 w-3" />
+                        Copy
+                      </Button>
+                    </div>
+                  </div>
+                  <CardDescription className="text-purple-300/80">
+                    POST /api/github-summarizer
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-purple-100">API Key:</label>
+                    <Input
+                      type="password"
+                      value={apiKey}
+                      onChange={(e) => setApiKey(e.target.value)}
+                      placeholder="Enter your API key (smo-...)"
+                      className="bg-purple-900/20 border-purple-400/40 text-purple-100 placeholder:text-purple-300/60 backdrop-blur-sm focus:border-purple-400 focus:ring-purple-400/50"
+                    />
+                    {!session && !apiKey && (
+                      <div className="mt-2 p-3 bg-blue-500/20 border border-blue-400/30 rounded-lg">
+                        <p className="text-xs text-blue-200">
+                          <strong>Need an API key?</strong> Sign up for free to get instant access to our GitHub analysis API.
+                        </p>
+                        <Button 
+                          onClick={() => signIn('google')} 
+                          size="sm"
+                          className="mt-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 text-xs"
+                        >
+                          Get Free API Key
+                        </Button>
+                      </div>
+                    )}
+                    {session && !apiKey && (
+                      <div className="mt-2 p-3 bg-green-500/20 border border-green-400/30 rounded-lg">
+                        <p className="text-xs text-green-200">
+                          <strong>Welcome back!</strong> Go to your dashboard to create or copy an API key.
+                        </p>
+                        <Link href="/dashboards">
+                          <Button 
+                            size="sm"
+                            className="mt-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 text-xs"
+                          >
+                            Go to Dashboard
+                          </Button>
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-purple-100">Request Body:</label>
+                    {isEditing ? (
+                      <textarea
+                        value={jsonPayload}
+                        onChange={(e) => setJsonPayload(e.target.value)}
+                        className="w-full h-32 p-3 text-sm font-mono bg-purple-900/30 border border-purple-400/40 text-purple-100 placeholder:text-purple-300/60 rounded-lg resize-none focus:border-purple-400 focus:ring-purple-400/50"
+                        placeholder="Enter JSON payload..."
+                      />
+                    ) : (
+                      <pre className="w-full h-32 p-3 text-sm font-mono bg-purple-900/30 border border-purple-400/40 text-purple-100 rounded-lg overflow-auto">
+                        {jsonPayload}
+                      </pre>
+                    )}
+                    {apiKey && (
+                      <p className="text-xs text-purple-300/70 mt-2">
+                        Your API key: <span className="font-mono bg-purple-800/30 px-2 py-1 rounded-md text-purple-200">{apiKey}</span>
+                      </p>
+                    )}
+                    {error && (
+                      <p className="text-xs text-red-300 mt-2">{error}</p>
+                    )}
+                  </div>
+                  <Button 
+                    onClick={handleApiRequest} 
+                    disabled={isLoading}
+                    className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        <Play className="h-4 w-4" />
+                        Send Request
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Response Panel */}
+              <Card className="h-fit bg-white/5 border-white/10 backdrop-blur-xl">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2 text-purple-100">
+                      <BarChart3 className="h-5 w-5 text-green-400" />
+                      API Response
+                    </CardTitle>
+                    {apiResponse && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copyToClipboard(JSON.stringify(apiResponse, null, 2))}
+                        className="flex items-center gap-1 border-purple-400/40 text-purple-200 hover:bg-purple-500/20 hover:text-purple-100"
+                      >
+                        <Copy className="h-3 w-3" />
+                        Copy
+                      </Button>
+                    )}
+                  </div>
+                  <CardDescription className="text-purple-300/80">
+                    {apiResponse ? `Status: 200 OK` : error ? `Error` : 'Ready to receive response'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="min-h-32">
+                    {isLoading ? (
+                      <div className="flex items-center justify-center h-32">
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="h-5 w-5 animate-spin text-purple-400" />
+                          <span className="text-sm text-purple-200/80">Analyzing repository...</span>
+                        </div>
+                      </div>
+                    ) : error ? (
+                      <div className="p-3 bg-red-500/20 border border-red-400/30 rounded-lg">
+                        <p className="text-sm text-red-300 font-medium">Error:</p>
+                        <p className="text-sm text-red-200">{error}</p>
+                      </div>
+                    ) : apiResponse ? (
+                      <div className="space-y-3">
+                        <div className="p-3 bg-green-500/20 border border-green-400/30 rounded-lg">
+                          <p className="text-sm font-medium text-green-300">Repository Summary:</p>
+                          <p className="text-sm text-green-200 mt-1">
+                            {apiResponse.summary || apiResponse.repositorySummary}
+                          </p>
+                        </div>
+                        {apiResponse.coolFacts && (
+                          <div className="p-3 bg-blue-500/20 border border-blue-400/30 rounded-lg">
+                            <p className="text-sm font-medium text-blue-300">Cool Facts:</p>
+                            <ul className="text-sm text-blue-200 mt-1 space-y-1">
+                              {apiResponse.coolFacts.map((fact, index) => (
+                                <li key={index}>• {fact}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        <pre className="w-full p-3 text-xs font-mono bg-purple-900/30 border border-purple-400/40 text-purple-100 rounded-lg overflow-auto max-h-40">
+                          {JSON.stringify(apiResponse, null, 2)}
+                        </pre>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center h-32 text-purple-300/60">
+                        <div className="text-center">
+                          <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                          <p className="text-sm">Send a request to see the API response</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
         {/* Pricing Section */}
         <section id="pricing" className="w-full py-16 md:py-20 lg:py-32">
           <div className="container px-4 md:px-6 mx-auto">
@@ -397,7 +669,7 @@ export default function Home() {
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 cursor-not-allowed opacity-75" variant="outline" disabled>
+                  <Button className="w-full bg-purple-900/20 border-purple-400/40 text-purple-200 hover:bg-purple-500/20 hover:text-purple-100 cursor-not-allowed opacity-75" variant="outline" disabled>
                     Coming Soon
                   </Button>
                 </CardFooter>
@@ -424,7 +696,7 @@ export default function Home() {
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 cursor-not-allowed opacity-75" variant="outline" disabled>
+                  <Button className="w-full bg-purple-900/20 border-purple-400/40 text-purple-200 hover:bg-purple-500/20 hover:text-purple-100 cursor-not-allowed opacity-75" variant="outline" disabled>
                     Coming Soon
                   </Button>
                 </CardFooter>

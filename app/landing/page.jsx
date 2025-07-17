@@ -1,3 +1,5 @@
+'use client'
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -14,11 +16,58 @@ import {
   TrendingUp,
   FileText,
   Clock,
+  Play,
+  Edit3,
+  BookOpen,
+  Copy,
+  Loader2,
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { useState } from 'react'
 
 export default function LandingPage() {
+  const [isLoading, setIsLoading] = useState(false)
+  const [apiResponse, setApiResponse] = useState(null)
+  const [error, setError] = useState(null)
+  const [isEditing, setIsEditing] = useState(false)
+  const [jsonPayload, setJsonPayload] = useState(`{
+  "githubUrl": "https://github.com/langchain-ai/langchain"
+}`)
+
+  const handleApiRequest = async () => {
+    setIsLoading(true)
+    setError(null)
+    setApiResponse(null)
+
+    try {
+      const payload = JSON.parse(jsonPayload)
+      const response = await fetch('/api/github-summarizer', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      setApiResponse(data)
+    } catch (err) {
+      console.error('API Request failed:', err)
+      setError(err.message)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text)
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Header */}
@@ -184,6 +233,201 @@ export default function LandingPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Interactive API Demo Section */}
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted/50">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-8">
+              <div className="space-y-2">
+                <Badge variant="outline">Live API Demo</Badge>
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">
+                  Try Our GitHub Summarizer API
+                </h2>
+                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                  See our AI-powered GitHub analysis in action. Edit the request payload and test the API directly.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Button variant="outline" className="flex items-center gap-2">
+                  <BookOpen className="h-4 w-4" />
+                  Documentation
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-2 max-w-6xl mx-auto">
+              {/* Request Panel */}
+              <Card className="h-fit">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <Play className="h-5 w-5 text-primary" />
+                      API Request
+                    </CardTitle>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsEditing(!isEditing)}
+                        className="flex items-center gap-1"
+                      >
+                        <Edit3 className="h-3 w-3" />
+                        {isEditing ? 'Preview' : 'Edit'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copyToClipboard(jsonPayload)}
+                        className="flex items-center gap-1"
+                      >
+                        <Copy className="h-3 w-3" />
+                        Copy
+                      </Button>
+                    </div>
+                  </div>
+                  <CardDescription>
+                    POST /api/github-summarizer
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Request Body:</label>
+                    {isEditing ? (
+                      <textarea
+                        value={jsonPayload}
+                        onChange={(e) => setJsonPayload(e.target.value)}
+                        className="w-full h-32 p-3 text-sm font-mono bg-gray-50 dark:bg-gray-900 border rounded-lg resize-none"
+                        placeholder="Enter JSON payload..."
+                      />
+                    ) : (
+                      <pre className="w-full h-32 p-3 text-sm font-mono bg-gray-50 dark:bg-gray-900 border rounded-lg overflow-auto">
+                        {jsonPayload}
+                      </pre>
+                    )}
+                  </div>
+                  <Button 
+                    onClick={handleApiRequest} 
+                    disabled={isLoading}
+                    className="w-full flex items-center justify-center gap-2"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        <Play className="h-4 w-4" />
+                        Send Request
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Response Panel */}
+              <Card className="h-fit">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5 text-green-500" />
+                      API Response
+                    </CardTitle>
+                    {apiResponse && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copyToClipboard(JSON.stringify(apiResponse, null, 2))}
+                        className="flex items-center gap-1"
+                      >
+                        <Copy className="h-3 w-3" />
+                        Copy
+                      </Button>
+                    )}
+                  </div>
+                  <CardDescription>
+                    {apiResponse ? `Status: 200 OK` : error ? `Error` : 'Ready to receive response'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="min-h-32">
+                    {isLoading ? (
+                      <div className="flex items-center justify-center h-32">
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                          <span className="text-sm text-muted-foreground">Analyzing repository...</span>
+                        </div>
+                      </div>
+                    ) : error ? (
+                      <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                        <p className="text-sm text-red-600 dark:text-red-400 font-medium">Error:</p>
+                        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                      </div>
+                    ) : apiResponse ? (
+                      <div className="space-y-3">
+                        <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                          <p className="text-sm font-medium text-green-800 dark:text-green-400">Repository Summary:</p>
+                          <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                            {apiResponse.summary || apiResponse.repositorySummary}
+                          </p>
+                        </div>
+                        {apiResponse.coolFacts && (
+                          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                            <p className="text-sm font-medium text-blue-800 dark:text-blue-400">Cool Facts:</p>
+                            <ul className="text-sm text-blue-700 dark:text-blue-300 mt-1 space-y-1">
+                              {apiResponse.coolFacts.map((fact, index) => (
+                                <li key={index}>• {fact}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        <pre className="w-full p-3 text-xs font-mono bg-gray-50 dark:bg-gray-900 border rounded-lg overflow-auto max-h-40">
+                          {JSON.stringify(apiResponse, null, 2)}
+                        </pre>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center h-32 text-muted-foreground">
+                        <div className="text-center">
+                          <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                          <p className="text-sm">Send a request to see the API response</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Example URLs */}
+            <div className="mt-8 max-w-4xl mx-auto">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Try These Example Repositories:</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-2 md:grid-cols-3">
+                    {[
+                      'https://github.com/facebook/react',
+                      'https://github.com/microsoft/vscode', 
+                      'https://github.com/vercel/next.js'
+                    ].map((url, index) => (
+                      <Button
+                        key={index}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setJsonPayload(`{\n  "githubUrl": "${url}"\n}`)}
+                        className="justify-start text-left h-auto p-2"
+                      >
+                        <Github className="h-4 w-4 mr-2 flex-shrink-0" />
+                        <span className="truncate">{url.replace('https://github.com/', '')}</span>
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </section>
