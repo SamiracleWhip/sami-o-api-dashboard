@@ -14,7 +14,8 @@ import {
   ChevronRight,
   Menu,
   X,
-  Code
+  Code,
+  LayoutDashboard
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -24,7 +25,8 @@ interface SidebarProps {
 }
 
 const navigationItems = [
-  { name: 'Dashboard', href: '/dashboards', icon: Home },
+  { name: 'Home', href: '/', icon: Home },
+  { name: 'Dashboard', href: '/dashboards', icon: LayoutDashboard },
   { name: 'API Keys', href: '/dashboards/api-keys', icon: Key },
   { name: 'Analytics', href: '/dashboards/analytics', icon: BarChart3 },
   { name: 'Users', href: '/dashboards/users', icon: Users },
