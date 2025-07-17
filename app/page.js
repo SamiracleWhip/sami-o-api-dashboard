@@ -341,7 +341,8 @@ export default function Home() {
             
             <div className="grid gap-6 md:gap-8 md:grid-cols-3 max-w-6xl mx-auto">
               {/* Free Tier */}
-              <Card className="relative bg-white/5 border-white/10 backdrop-blur-xl hover:bg-white/10 transition-all duration-300 transform hover:scale-105">
+              <Card className="relative bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-purple-400/30 backdrop-blur-xl transform scale-105 shadow-2xl">
+                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-400 to-pink-400 text-white border-0">Most Popular</Badge>
                 <CardHeader className="text-center">
                   <CardTitle className="text-xl md:text-2xl text-white">Free</CardTitle>
                   <CardDescription className="text-white/70">Perfect for getting started</CardDescription>
@@ -362,14 +363,11 @@ export default function Home() {
                 <CardFooter>
                   {session ? (
                     <Link href="/dashboards" className="w-full">
-                      <Button className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20" variant="outline">
-                        Access Dashboard
-                      </Button>
+                      <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0">Access Dashboard</Button>
                     </Link>
                   ) : (
                     <Button 
-                      className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20" 
-                      variant="outline"
+                      className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0"
                       onClick={() => signIn('google')}
                     >
                       Get Started Free
@@ -379,8 +377,8 @@ export default function Home() {
               </Card>
 
               {/* Pro Tier */}
-              <Card className="relative bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-purple-400/30 backdrop-blur-xl transform scale-105 shadow-2xl">
-                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-400 to-pink-400 text-white border-0">Most Popular</Badge>
+              <Card className="relative bg-white/5 border-white/10 backdrop-blur-xl hover:bg-white/10 transition-all duration-300 transform hover:scale-105">
+                <Badge className="absolute -top-3 right-3 bg-orange-500 text-white border-0 text-xs">Coming Soon</Badge>
                 <CardHeader className="text-center">
                   <CardTitle className="text-xl md:text-2xl text-white">Pro</CardTitle>
                   <CardDescription className="text-white/70">For serious developers and teams</CardDescription>
@@ -399,23 +397,15 @@ export default function Home() {
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  {session ? (
-                    <Link href="/dashboards" className="w-full">
-                      <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0">Access Dashboard</Button>
-                    </Link>
-                  ) : (
-                    <Button 
-                      className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0"
-                      onClick={() => signIn('google')}
-                    >
-                      Start Pro Trial
-                    </Button>
-                  )}
+                  <Button className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 cursor-not-allowed opacity-75" variant="outline" disabled>
+                    Coming Soon
+                  </Button>
                 </CardFooter>
               </Card>
 
               {/* Enterprise Tier */}
               <Card className="relative bg-white/5 border-white/10 backdrop-blur-xl hover:bg-white/10 transition-all duration-300 transform hover:scale-105">
+                <Badge className="absolute -top-3 right-3 bg-orange-500 text-white border-0 text-xs">Coming Soon</Badge>
                 <CardHeader className="text-center">
                   <CardTitle className="text-xl md:text-2xl text-white">Enterprise</CardTitle>
                   <CardDescription className="text-white/70">For large teams and organizations</CardDescription>
@@ -434,8 +424,8 @@ export default function Home() {
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20" variant="outline">
-                    Contact Sales
+                  <Button className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 cursor-not-allowed opacity-75" variant="outline" disabled>
+                    Coming Soon
                   </Button>
                 </CardFooter>
               </Card>

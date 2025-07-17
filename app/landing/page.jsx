@@ -202,7 +202,8 @@ export default function LandingPage() {
             </div>
             <div className="grid gap-6 mt-12 md:grid-cols-3 md:gap-8">
               {/* Free Tier */}
-              <Card className="relative">
+              <Card className="relative border-primary">
+                <Badge className="absolute -top-2 left-1/2 -translate-x-1/2">Most Popular</Badge>
                 <CardHeader>
                   <CardTitle className="text-2xl">Free</CardTitle>
                   <CardDescription>Perfect for getting started</CardDescription>
@@ -232,7 +233,7 @@ export default function LandingPage() {
                 </CardContent>
                 <CardFooter>
                   <Link href="/auth/signin" className="w-full">
-                    <Button className="w-full bg-transparent" variant="outline">
+                    <Button className="w-full">
                       Get Started Free
                     </Button>
                   </Link>
@@ -240,8 +241,8 @@ export default function LandingPage() {
               </Card>
 
               {/* Pro Tier */}
-              <Card className="relative border-primary">
-                <Badge className="absolute -top-2 left-1/2 -translate-x-1/2">Most Popular</Badge>
+              <Card className="relative">
+                <Badge className="absolute -top-2 right-3 bg-orange-500 text-white border-0 text-xs">Coming Soon</Badge>
                 <CardHeader>
                   <CardTitle className="text-2xl">Pro</CardTitle>
                   <CardDescription>For serious developers and teams</CardDescription>
@@ -278,14 +279,15 @@ export default function LandingPage() {
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  <Link href="/auth/signin" className="w-full">
-                    <Button className="w-full">Start Pro Trial</Button>
-                  </Link>
+                  <Button className="w-full bg-transparent cursor-not-allowed opacity-75" variant="outline" disabled>
+                    Coming Soon
+                  </Button>
                 </CardFooter>
               </Card>
 
               {/* Enterprise Tier */}
               <Card className="relative">
+                <Badge className="absolute -top-2 right-3 bg-orange-500 text-white border-0 text-xs">Coming Soon</Badge>
                 <CardHeader>
                   <CardTitle className="text-2xl">Enterprise</CardTitle>
                   <CardDescription>For large teams and organizations</CardDescription>
@@ -322,8 +324,8 @@ export default function LandingPage() {
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full bg-transparent" variant="outline">
-                    Contact Sales
+                  <Button className="w-full bg-transparent cursor-not-allowed opacity-75" variant="outline" disabled>
+                    Coming Soon
                   </Button>
                 </CardFooter>
               </Card>
