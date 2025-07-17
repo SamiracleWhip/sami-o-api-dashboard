@@ -47,7 +47,7 @@ export default function Home() {
         <div className="flex items-center gap-2 ml-4">
           {session ? (
             <>
-              <Link href="/dashboard">
+              <Link href="/dashboards">
                 <Button variant="ghost" size="sm" className="flex items-center gap-2">
                   <Settings className="h-4 w-4" />
                   Dashboard
@@ -98,7 +98,7 @@ export default function Home() {
               </div>
               <div className="space-x-4">
                 {session ? (
-                  <Link href="/dashboard">
+                  <Link href="/dashboards">
                     <Button size="lg" className="h-11 px-8">
                       Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
@@ -270,7 +270,7 @@ export default function Home() {
                 </CardContent>
                 <CardFooter>
                   {session ? (
-                    <Link href="/dashboard" className="w-full">
+                    <Link href="/dashboards" className="w-full">
                       <Button className="w-full bg-transparent" variant="outline">
                         Access Dashboard
                       </Button>
@@ -327,7 +327,7 @@ export default function Home() {
                 </CardContent>
                 <CardFooter>
                   {session ? (
-                    <Link href="/dashboard" className="w-full">
+                    <Link href="/dashboards" className="w-full">
                       <Button className="w-full">Access Dashboard</Button>
                     </Link>
                   ) : (
