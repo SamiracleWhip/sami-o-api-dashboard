@@ -18,6 +18,9 @@ import {
   Clock,
   User,
   Settings,
+  Sparkles,
+  Code2,
+  Layers,
 } from "lucide-react"
 import Link from "next/link"
 import { useSession, signIn, signOut } from 'next-auth/react'
@@ -26,29 +29,40 @@ export default function Home() {
   const { data: session, status } = useSession()
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -inset-10 opacity-50">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500 rounded-full filter blur-xl opacity-20 animate-pulse"></div>
+          <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-blue-500 rounded-full filter blur-xl opacity-20 animate-pulse delay-1000"></div>
+          <div className="absolute bottom-1/4 left-1/2 w-96 h-96 bg-indigo-500 rounded-full filter blur-xl opacity-20 animate-pulse delay-2000"></div>
+        </div>
+      </div>
+
       {/* Header */}
-      <header className="px-4 lg:px-6 h-14 flex items-center border-b">
-        <Link className="flex items-center justify-center hover:opacity-75 transition-opacity" href="/">
-          <Github className="h-6 w-6 mr-2" />
-          <span className="font-bold text-xl">Sami-O</span>
+      <header className="px-4 lg:px-6 h-16 flex items-center border-b border-white/10 backdrop-blur-md bg-white/5 relative z-10">
+        <Link className="flex items-center justify-center hover:opacity-75 transition-all duration-300 transform hover:scale-105" href="/">
+          <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-400 rounded-lg flex items-center justify-center mr-3">
+            <Github className="h-5 w-5 text-white" />
+          </div>
+          <span className="font-bold text-xl text-white">Sami-O</span>
         </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="#features">
+        <nav className="ml-auto flex gap-6 sm:gap-8">
+          <Link className="text-sm font-medium hover:text-purple-300 text-white/80 transition-colors" href="#features">
             Features
           </Link>
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="#pricing">
+          <Link className="text-sm font-medium hover:text-purple-300 text-white/80 transition-colors" href="#pricing">
             Pricing
           </Link>
-          <Link className="text-sm font-medium hover:underline underline-offset-4" href="#about">
+          <Link className="text-sm font-medium hover:text-purple-300 text-white/80 transition-colors" href="#about">
             About
           </Link>
         </nav>
-        <div className="flex items-center gap-2 ml-4">
+        <div className="flex items-center gap-3 ml-6">
           {session ? (
             <>
               <Link href="/dashboards">
-                <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" className="flex items-center gap-2 text-white hover:bg-white/10 border-white/20">
                   <Settings className="h-4 w-4" />
                   Dashboard
                 </Button>
@@ -57,7 +71,7 @@ export default function Home() {
                 variant="outline" 
                 size="sm" 
                 onClick={() => signOut()}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 border-white/20 text-white hover:bg-white/10"
               >
                 <User className="h-4 w-4" />
                 Sign Out
@@ -66,64 +80,112 @@ export default function Home() {
           ) : (
             <>
               <Link href="/auth/signin">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
                   Login
                 </Button>
               </Link>
               <Link href="/auth/signin">
-                <Button size="sm">Sign Up</Button>
+                <Button size="sm" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0">
+                  Sign Up
+                </Button>
               </Link>
             </>
           )}
         </div>
       </header>
 
-      <main className="flex-1">
+      <main className="flex-1 relative z-10">
         {/* Hero Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center space-y-4 text-center">
-              <div className="space-y-2">
-                <Badge variant="secondary" className="mb-4">
-                  <Zap className="w-3 h-3 mr-1" />
+        <section className="w-full py-20 md:py-32 lg:py-40 xl:py-48">
+          <div className="container px-4 md:px-6 mx-auto">
+            <div className="flex flex-col items-center space-y-8 text-center">
+              <div className="space-y-6">
+                <Badge variant="secondary" className="mb-6 bg-white/10 text-white border-white/20 backdrop-blur-sm">
+                  <Sparkles className="w-3 h-3 mr-1" />
                   AI-Powered GitHub Analysis
                 </Badge>
-                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
-                  Unlock Deep Insights from Any <span className="text-primary">GitHub Repository</span>
+                <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl text-white leading-tight">
+                  Unlock Deep Insights from Any{" "}
+                  <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent animate-pulse">
+                    GitHub Repository
+                  </span>
                 </h1>
-                <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
+                <p className="mx-auto max-w-[700px] text-white/80 text-lg md:text-xl leading-relaxed">
                   Get comprehensive summaries, track stars, discover cool facts, monitor pull requests, and stay updated
                   with version changes - all in one powerful dashboard.
                 </p>
               </div>
-              <div className="space-x-4">
+              
+              <div className="flex flex-col sm:flex-row gap-4 items-center">
                 {session ? (
                   <Link href="/dashboards">
-                    <Button size="lg" className="h-11 px-8">
+                    <Button size="lg" className="h-12 px-8 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 transform hover:scale-105 transition-all duration-300 shadow-2xl">
                       Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
                 ) : (
                   <Button 
                     size="lg" 
-                    className="h-11 px-8"
+                    className="h-12 px-8 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 transform hover:scale-105 transition-all duration-300 shadow-2xl"
                     onClick={() => signIn('google')}
                   >
                     Start Analyzing <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 )}
-                <Button variant="outline" size="lg" className="h-11 px-8 bg-transparent">
+                <Button variant="outline" size="lg" className="h-12 px-8 bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm">
                   View Demo
                 </Button>
               </div>
-              <div className="w-full max-w-4xl mt-8">
-                <div className="rounded-lg border shadow-lg bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-8 flex items-center justify-center min-h-[400px]">
-                  <div className="text-center space-y-4">
-                    <Github className="h-24 w-24 mx-auto text-muted-foreground" />
-                    <h3 className="text-2xl font-semibold">Sami-O Dashboard</h3>
-                    <p className="text-muted-foreground max-w-md">
-                      Comprehensive GitHub repository analysis with AI-powered insights, star tracking, and more.
-                    </p>
+
+              {/* Enhanced Dashboard Preview */}
+              <div className="w-full max-w-5xl mt-12">
+                <div className="relative">
+                  {/* Floating elements */}
+                  <div className="absolute -top-4 -left-4 w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-lg animate-bounce delay-1000 opacity-80"></div>
+                  <div className="absolute -top-2 -right-8 w-6 h-6 bg-gradient-to-br from-green-400 to-blue-400 rounded-full animate-bounce delay-2000 opacity-80"></div>
+                  <div className="absolute -bottom-6 left-8 w-4 h-4 bg-gradient-to-br from-pink-400 to-purple-400 rounded-full animate-bounce delay-500 opacity-80"></div>
+                  
+                  <div className="rounded-2xl border border-white/20 shadow-2xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl p-8 relative overflow-hidden">
+                    {/* Stats overlay */}
+                    <div className="absolute top-4 right-4 flex gap-3">
+                      <div className="bg-green-500/20 text-green-300 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm">
+                        416 Live Visitors
+                      </div>
+                      <div className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm">
+                        1.7M Unique
+                      </div>
+                    </div>
+                    
+                    <div className="text-center space-y-6">
+                      <div className="flex items-center justify-center space-x-4">
+                        <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-400 rounded-2xl flex items-center justify-center shadow-lg">
+                          <Github className="h-8 w-8 text-white" />
+                        </div>
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-indigo-400 rounded-xl flex items-center justify-center shadow-lg animate-pulse">
+                          <Code2 className="h-6 w-6 text-white" />
+                        </div>
+                        <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-teal-400 rounded-lg flex items-center justify-center shadow-lg animate-pulse delay-500">
+                          <Layers className="h-5 w-5 text-white" />
+                        </div>
+                      </div>
+                      <h3 className="text-2xl font-semibold text-white">Sami-O Dashboard</h3>
+                      <p className="text-white/70 max-w-md mx-auto">
+                        Comprehensive GitHub repository analysis with AI-powered insights, star tracking, and more.
+                      </p>
+                      
+                      {/* Mini chart visualization */}
+                      <div className="flex justify-center mt-6">
+                        <div className="flex items-end space-x-1 h-12">
+                          {[40, 60, 35, 80, 45, 75, 55, 90, 65].map((height, i) => (
+                            <div
+                              key={i}
+                              className="w-3 bg-gradient-to-t from-purple-400 to-pink-400 rounded-sm animate-pulse"
+                              style={{ height: `${height}%`, animationDelay: `${i * 100}ms` }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -132,152 +194,101 @@ export default function Home() {
         </section>
 
         {/* Features Section */}
-        <section id="features" className="w-full py-12 md:py-24 lg:py-32 bg-muted/50">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <Badge variant="outline">Features</Badge>
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">
-                  Everything You Need to Understand GitHub Repositories
-                </h2>
-                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Our AI-powered platform provides comprehensive insights that help developers, project managers, and
-                  teams make informed decisions.
-                </p>
-              </div>
+        <section id="features" className="w-full py-20 md:py-32 relative">
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
+          <div className="container px-4 md:px-6 mx-auto relative z-10">
+            <div className="flex flex-col items-center justify-center space-y-8 text-center mb-16">
+              <Badge variant="outline" className="border-white/20 text-white bg-white/5 backdrop-blur-sm">Features</Badge>
+              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl text-white">
+                Everything You Need to Understand GitHub Repositories
+              </h2>
+              <p className="max-w-[900px] text-white/70 text-lg leading-relaxed">
+                Our AI-powered platform provides comprehensive insights that help developers, project managers, and
+                teams make informed decisions.
+              </p>
             </div>
-            <div className="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:grid-cols-2 lg:gap-12">
-              <div className="flex flex-col justify-center space-y-4">
-                <div className="grid gap-6">
-                  <div className="flex items-start space-x-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                      <FileText className="h-6 w-6 text-primary" />
+            
+            <div className="grid gap-8 lg:grid-cols-2 lg:gap-16 max-w-6xl mx-auto">
+              <div className="space-y-8">
+                {[
+                  { icon: FileText, title: "Smart Repository Summaries", desc: "Get AI-generated summaries that capture the essence, purpose, and key features of any repository." },
+                  { icon: Star, title: "Star Tracking & Analytics", desc: "Monitor star growth, identify trending patterns, and understand repository popularity over time." },
+                  { icon: Zap, title: "Cool Facts Discovery", desc: "Uncover interesting statistics, contributor insights, and unique repository characteristics." }
+                ].map((feature, i) => (
+                  <div key={i} className="flex items-start space-x-4 group">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-purple-400/20 to-pink-400/20 border border-white/10 backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
+                      <feature.icon className="h-7 w-7 text-purple-300" />
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-xl font-bold">Smart Repository Summaries</h3>
-                      <p className="text-muted-foreground">
-                        Get AI-generated summaries that capture the essence, purpose, and key features of any
-                        repository.
-                      </p>
+                      <h3 className="text-xl font-bold text-white">{feature.title}</h3>
+                      <p className="text-white/70">{feature.desc}</p>
                     </div>
                   </div>
-                  <div className="flex items-start space-x-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                      <Star className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="text-xl font-bold">Star Tracking & Analytics</h3>
-                      <p className="text-muted-foreground">
-                        Monitor star growth, identify trending patterns, and understand repository popularity over time.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                      <Zap className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="text-xl font-bold">Cool Facts Discovery</h3>
-                      <p className="text-muted-foreground">
-                        Uncover interesting statistics, contributor insights, and unique repository characteristics.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
-              <div className="flex flex-col justify-center space-y-4">
-                <div className="grid gap-6">
-                  <div className="flex items-start space-x-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                      <GitPullRequest className="h-6 w-6 text-primary" />
+              
+              <div className="space-y-8">
+                {[
+                  { icon: GitPullRequest, title: "Important PR Monitoring", desc: "Stay updated with the latest significant pull requests and their impact on the project." },
+                  { icon: TrendingUp, title: "Version Update Alerts", desc: "Get notified about new releases, version changes, and breaking updates automatically." },
+                  { icon: BarChart3, title: "Advanced Analytics", desc: "Comprehensive dashboards with charts, graphs, and detailed metrics for deep analysis." }
+                ].map((feature, i) => (
+                  <div key={i} className="flex items-start space-x-4 group">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-blue-400/20 to-indigo-400/20 border border-white/10 backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
+                      <feature.icon className="h-7 w-7 text-blue-300" />
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-xl font-bold">Important PR Monitoring</h3>
-                      <p className="text-muted-foreground">
-                        Stay updated with the latest significant pull requests and their impact on the project.
-                      </p>
+                      <h3 className="text-xl font-bold text-white">{feature.title}</h3>
+                      <p className="text-white/70">{feature.desc}</p>
                     </div>
                   </div>
-                  <div className="flex items-start space-x-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                      <TrendingUp className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="text-xl font-bold">Version Update Alerts</h3>
-                      <p className="text-muted-foreground">
-                        Get notified about new releases, version changes, and breaking updates automatically.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                      <BarChart3 className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="text-xl font-bold">Advanced Analytics</h3>
-                      <p className="text-muted-foreground">
-                        Comprehensive dashboards with charts, graphs, and detailed metrics for deep analysis.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>
         </section>
 
         {/* Pricing Section */}
-        <section id="pricing" className="w-full py-12 md:py-24 lg:py-32">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <Badge variant="outline">Pricing</Badge>
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Choose Your Plan</h2>
-                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Start free and scale as you grow. All plans include our core features with different usage limits.
-                </p>
-              </div>
+        <section id="pricing" className="w-full py-20 md:py-32">
+          <div className="container px-4 md:px-6 mx-auto">
+            <div className="flex flex-col items-center justify-center space-y-8 text-center mb-16">
+              <Badge variant="outline" className="border-white/20 text-white bg-white/5 backdrop-blur-sm">Pricing</Badge>
+              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl text-white">Choose Your Plan</h2>
+              <p className="max-w-[900px] text-white/70 text-lg leading-relaxed">
+                Start free and scale as you grow. All plans include our core features with different usage limits.
+              </p>
             </div>
-            <div className="grid gap-6 mt-12 md:grid-cols-3 md:gap-8">
+            
+            <div className="grid gap-8 md:grid-cols-3 max-w-6xl mx-auto">
               {/* Free Tier */}
-              <Card className="relative">
-                <CardHeader>
-                  <CardTitle className="text-2xl">Free</CardTitle>
-                  <CardDescription>Perfect for getting started</CardDescription>
-                  <div className="text-4xl font-bold">
-                    $0<span className="text-base font-normal text-muted-foreground">/month</span>
+              <Card className="relative bg-white/5 border-white/10 backdrop-blur-xl hover:bg-white/10 transition-all duration-300 transform hover:scale-105">
+                <CardHeader className="text-center">
+                  <CardTitle className="text-2xl text-white">Free</CardTitle>
+                  <CardDescription className="text-white/70">Perfect for getting started</CardDescription>
+                  <div className="text-4xl font-bold text-white">
+                    $0<span className="text-base font-normal text-white/60">/month</span>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <ul className="space-y-2">
-                    <li className="flex items-center">
-                      <Check className="h-4 w-4 text-green-500 mr-2" />
-                      <span className="text-sm">5 repository analyses per month</span>
-                    </li>
-                    <li className="flex items-center">
-                      <Check className="h-4 w-4 text-green-500 mr-2" />
-                      <span className="text-sm">Basic summaries and insights</span>
-                    </li>
-                    <li className="flex items-center">
-                      <Check className="h-4 w-4 text-green-500 mr-2" />
-                      <span className="text-sm">Star tracking</span>
-                    </li>
-                    <li className="flex items-center">
-                      <Check className="h-4 w-4 text-green-500 mr-2" />
-                      <span className="text-sm">Email support</span>
-                    </li>
+                  <ul className="space-y-3">
+                    {["5 repository analyses per month", "Basic summaries and insights", "Star tracking", "Email support"].map((feature, i) => (
+                      <li key={i} className="flex items-center">
+                        <Check className="h-4 w-4 text-green-400 mr-3" />
+                        <span className="text-white/80 text-sm">{feature}</span>
+                      </li>
+                    ))}
                   </ul>
                 </CardContent>
                 <CardFooter>
                   {session ? (
                     <Link href="/dashboards" className="w-full">
-                      <Button className="w-full bg-transparent" variant="outline">
+                      <Button className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20" variant="outline">
                         Access Dashboard
                       </Button>
                     </Link>
                   ) : (
                     <Button 
-                      className="w-full bg-transparent" 
+                      className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20" 
                       variant="outline"
                       onClick={() => signIn('google')}
                     >
@@ -288,51 +299,33 @@ export default function Home() {
               </Card>
 
               {/* Pro Tier */}
-              <Card className="relative border-primary">
-                <Badge className="absolute -top-2 left-1/2 -translate-x-1/2">Most Popular</Badge>
-                <CardHeader>
-                  <CardTitle className="text-2xl">Pro</CardTitle>
-                  <CardDescription>For serious developers and teams</CardDescription>
-                  <div className="text-4xl font-bold">
-                    $19<span className="text-base font-normal text-muted-foreground">/month</span>
+              <Card className="relative bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-purple-400/30 backdrop-blur-xl transform scale-105 shadow-2xl">
+                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-400 to-pink-400 text-white border-0">Most Popular</Badge>
+                <CardHeader className="text-center">
+                  <CardTitle className="text-2xl text-white">Pro</CardTitle>
+                  <CardDescription className="text-white/70">For serious developers and teams</CardDescription>
+                  <div className="text-4xl font-bold text-white">
+                    $19<span className="text-base font-normal text-white/60">/month</span>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <ul className="space-y-2">
-                    <li className="flex items-center">
-                      <Check className="h-4 w-4 text-green-500 mr-2" />
-                      <span className="text-sm">100 repository analyses per month</span>
-                    </li>
-                    <li className="flex items-center">
-                      <Check className="h-4 w-4 text-green-500 mr-2" />
-                      <span className="text-sm">Advanced AI insights and cool facts</span>
-                    </li>
-                    <li className="flex items-center">
-                      <Check className="h-4 w-4 text-green-500 mr-2" />
-                      <span className="text-sm">PR monitoring and alerts</span>
-                    </li>
-                    <li className="flex items-center">
-                      <Check className="h-4 w-4 text-green-500 mr-2" />
-                      <span className="text-sm">Version update notifications</span>
-                    </li>
-                    <li className="flex items-center">
-                      <Check className="h-4 w-4 text-green-500 mr-2" />
-                      <span className="text-sm">Priority support</span>
-                    </li>
-                    <li className="flex items-center">
-                      <Check className="h-4 w-4 text-green-500 mr-2" />
-                      <span className="text-sm">API access</span>
-                    </li>
+                  <ul className="space-y-3">
+                    {["100 repository analyses per month", "Advanced AI insights and cool facts", "PR monitoring and alerts", "Version update notifications", "Priority support", "API access"].map((feature, i) => (
+                      <li key={i} className="flex items-center">
+                        <Check className="h-4 w-4 text-green-400 mr-3" />
+                        <span className="text-white/80 text-sm">{feature}</span>
+                      </li>
+                    ))}
                   </ul>
                 </CardContent>
                 <CardFooter>
                   {session ? (
                     <Link href="/dashboards" className="w-full">
-                      <Button className="w-full">Access Dashboard</Button>
+                      <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0">Access Dashboard</Button>
                     </Link>
                   ) : (
                     <Button 
-                      className="w-full"
+                      className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0"
                       onClick={() => signIn('google')}
                     >
                       Start Pro Trial
@@ -342,44 +335,26 @@ export default function Home() {
               </Card>
 
               {/* Enterprise Tier */}
-              <Card className="relative">
-                <CardHeader>
-                  <CardTitle className="text-2xl">Enterprise</CardTitle>
-                  <CardDescription>For large teams and organizations</CardDescription>
-                  <div className="text-4xl font-bold">
-                    $99<span className="text-base font-normal text-muted-foreground">/month</span>
+              <Card className="relative bg-white/5 border-white/10 backdrop-blur-xl hover:bg-white/10 transition-all duration-300 transform hover:scale-105">
+                <CardHeader className="text-center">
+                  <CardTitle className="text-2xl text-white">Enterprise</CardTitle>
+                  <CardDescription className="text-white/70">For large teams and organizations</CardDescription>
+                  <div className="text-4xl font-bold text-white">
+                    $99<span className="text-base font-normal text-white/60">/month</span>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <ul className="space-y-2">
-                    <li className="flex items-center">
-                      <Check className="h-4 w-4 text-green-500 mr-2" />
-                      <span className="text-sm">Unlimited repository analyses</span>
-                    </li>
-                    <li className="flex items-center">
-                      <Check className="h-4 w-4 text-green-500 mr-2" />
-                      <span className="text-sm">Custom AI models and insights</span>
-                    </li>
-                    <li className="flex items-center">
-                      <Check className="h-4 w-4 text-green-500 mr-2" />
-                      <span className="text-sm">Advanced analytics dashboard</span>
-                    </li>
-                    <li className="flex items-center">
-                      <Check className="h-4 w-4 text-green-500 mr-2" />
-                      <span className="text-sm">Team collaboration features</span>
-                    </li>
-                    <li className="flex items-center">
-                      <Check className="h-4 w-4 text-green-500 mr-2" />
-                      <span className="text-sm">24/7 dedicated support</span>
-                    </li>
-                    <li className="flex items-center">
-                      <Check className="h-4 w-4 text-green-500 mr-2" />
-                      <span className="text-sm">Custom integrations</span>
-                    </li>
+                  <ul className="space-y-3">
+                    {["Unlimited repository analyses", "Custom AI models and insights", "Advanced analytics dashboard", "Team collaboration features", "24/7 dedicated support", "Custom integrations"].map((feature, i) => (
+                      <li key={i} className="flex items-center">
+                        <Check className="h-4 w-4 text-green-400 mr-3" />
+                        <span className="text-white/80 text-sm">{feature}</span>
+                      </li>
+                    ))}
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  <Button className="w-full bg-transparent" variant="outline">
+                  <Button className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20" variant="outline">
                     Contact Sales
                   </Button>
                 </CardFooter>
@@ -389,25 +364,30 @@ export default function Home() {
         </section>
 
         {/* CTA Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted/50">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">
-                  Ready to Analyze Your First Repository?
-                </h2>
-                <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Join thousands of developers who trust Sami-O for their GitHub repository insights.
-                </p>
-              </div>
-              <div className="w-full max-w-sm space-y-2">
-                <form className="flex gap-2">
-                  <Input type="email" placeholder="Enter your email" className="max-w-lg flex-1" />
-                  <Button type="submit">Get Started</Button>
-                </form>
-                <p className="text-xs text-muted-foreground">
+        <section className="w-full py-20 md:py-32 relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-900/50 to-pink-900/50 backdrop-blur-sm"></div>
+          <div className="container px-4 md:px-6 mx-auto relative z-10">
+            <div className="flex flex-col items-center justify-center space-y-8 text-center">
+              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl text-white">
+                Ready to Analyze Your First Repository?
+              </h2>
+              <p className="max-w-[600px] text-white/70 text-lg leading-relaxed">
+                Join thousands of developers who trust Sami-O for their GitHub repository insights.
+              </p>
+              <div className="w-full max-w-md space-y-4">
+                <div className="flex gap-3">
+                  <Input 
+                    type="email" 
+                    placeholder="Enter your email" 
+                    className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-white/50 backdrop-blur-sm" 
+                  />
+                  <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0">
+                    Get Started
+                  </Button>
+                </div>
+                <p className="text-xs text-white/50">
                   Start with our free tier. No credit card required.{" "}
-                  <Link href="/terms" className="underline underline-offset-2">
+                  <Link href="/terms" className="underline underline-offset-2 hover:text-white/70">
                     Terms & Conditions
                   </Link>
                 </p>
@@ -417,55 +397,43 @@ export default function Home() {
         </section>
 
         {/* Stats Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32">
-          <div className="container px-4 md:px-6">
-            <div className="grid gap-6 lg:grid-cols-3 lg:gap-12">
-              <div className="flex flex-col items-center space-y-4 text-center">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-                  <Github className="h-10 w-10 text-primary" />
+        <section className="w-full py-20 md:py-32">
+          <div className="container px-4 md:px-6 mx-auto">
+            <div className="grid gap-8 lg:grid-cols-3 max-w-6xl mx-auto">
+              {[
+                { icon: Github, value: "10K+", label: "Repositories Analyzed", gradient: "from-purple-400 to-pink-400" },
+                { icon: Shield, value: "99.9%", label: "Uptime Guarantee", gradient: "from-blue-400 to-indigo-400" },
+                { icon: Clock, value: "<5s", label: "Average Analysis Time", gradient: "from-green-400 to-teal-400" }
+              ].map((stat, i) => (
+                <div key={i} className="flex flex-col items-center space-y-6 text-center group">
+                  <div className={`flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br ${stat.gradient} shadow-2xl group-hover:scale-110 transition-transform duration-300`}>
+                    <stat.icon className="h-10 w-10 text-white" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-4xl font-bold text-white">{stat.value}</h3>
+                    <p className="text-white/70">{stat.label}</p>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <h3 className="text-3xl font-bold">10K+</h3>
-                  <p className="text-muted-foreground">Repositories Analyzed</p>
-                </div>
-              </div>
-              <div className="flex flex-col items-center space-y-4 text-center">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-                  <Shield className="h-10 w-10 text-primary" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-3xl font-bold">99.9%</h3>
-                  <p className="text-muted-foreground">Uptime Guarantee</p>
-                </div>
-              </div>
-              <div className="flex flex-col items-center space-y-4 text-center">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-                  <Clock className="h-10 w-10 text-primary" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-3xl font-bold">{"<5s"}</h3>
-                  <p className="text-muted-foreground">Average Analysis Time</p>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </section>
       </main>
 
       {/* Footer */}
-      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <p className="text-xs text-muted-foreground">© 2024 Sami-O Github Analyzer. All rights reserved.</p>
-        <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-          <Link className="text-xs hover:underline underline-offset-4" href="/terms">
-            Terms of Service
-          </Link>
-          <Link className="text-xs hover:underline underline-offset-4" href="/privacy">
-            Privacy Policy
-          </Link>
-          <Link className="text-xs hover:underline underline-offset-4" href="/contact">
-            Contact
-          </Link>
-        </nav>
+      <footer className="py-8 w-full border-t border-white/10 backdrop-blur-md bg-white/5 relative z-10">
+        <div className="container px-4 md:px-6 mx-auto">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-xs text-white/50">© 2024 Sami-O Github Analyzer. All rights reserved.</p>
+            <nav className="flex gap-6">
+              {["Terms of Service", "Privacy Policy", "Contact"].map((link, i) => (
+                <Link key={i} className="text-xs hover:text-white/70 text-white/50 transition-colors" href={`/${link.toLowerCase().replace(/\s+/g, '-')}`}>
+                  {link}
+                </Link>
+              ))}
+            </nav>
+          </div>
+        </div>
       </footer>
     </div>
   )
