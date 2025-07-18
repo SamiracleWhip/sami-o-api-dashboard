@@ -1,68 +1,39 @@
-import { supabaseAdmin } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/auth-helpers'
+import { getAuthenticatedUser, generateApiKey, supabaseAdmin } from '@/lib/api-auth'
 
-// Helper function to generate API key
-function generateApiKey() {
-  let result = 'smo-'
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-  const charactersLength = characters.length
-  for (let i = 0; i < 48; i++) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength))
-  }
-  return result
-}
-
-export async function POST() {
+export async function POST(request) {
   try {
     console.log('Creating test API key...')
     
-    // Get current user (optional for test keys)
-    const { user, error: authError } = await getCurrentUser()
+    // Get authenticated user
+    const { user, error: authError } = await getAuthenticatedUser(request)
     
-    // For demonstration purposes, we'll create a temporary user if none exists
-    // In a real application, you might want to require authentication
-    let userId = user?.id
-    
-    if (!userId) {
-      // Create a temporary demo user for anonymous test keys
-      const tempUser = {
-        name: 'Demo User',
-        email: `demo-${Date.now()}@temp.local`,
-        image: null,
-        email_verified: new Date().toISOString(),
-        provider: 'demo',
-        provider_account_id: `demo-${Date.now()}`,
-      }
+    if (!user) {
+      // Allow unauthenticated users to create test keys with limited functionality
+      console.log('No authenticated user found, creating anonymous test key')
       
-      const { data: createdUser, error: userError } = await supabaseAdmin
-        .from('users')
-        .insert([tempUser])
-        .select()
-        .single()
+      // Create a temporary test key (not stored in database)
+      const testApiKey = generateApiKey()
       
-      if (userError) {
-        console.error('Error creating demo user:', userError)
-        return NextResponse.json({ 
-          error: 'Failed to create demo user for test key',
-          details: userError 
-        }, { status: 500 })
-      }
-      
-      userId = createdUser.id
-      console.log('Created temporary demo user for test key:', userId)
+      return NextResponse.json({
+        success: true,
+        apiKey: testApiKey,
+        message: 'Test API key generated (temporary)',
+        note: 'This is a temporary test key. Sign up for a free account to create persistent API keys.'
+      })
     }
-    
+
+    console.log('Authenticated user found:', user.email)
+
+    // Create a test API key for the authenticated user
     const testApiKey = {
-      user_id: userId,
-      name: user ? 'Test Demo Key' : 'Anonymous Test Key',
-      description: user 
-        ? 'Auto-generated for API testing' 
-        : 'Temporary test key for demo purposes',
+      user_id: user.id,
+      name: 'Test API Key',
+      description: 'Automatically generated test key for API exploration',
       permissions: 'read',
       status: 'active',
       key_type: 'development',
-      usage_limit: user ? 1000 : 10, // Limit anonymous keys to 10 uses
+      usage_limit: 100, // Lower limit for test keys
       api_key: generateApiKey(),
       usage_count: 0
     }
@@ -77,21 +48,22 @@ export async function POST() {
       console.error('Error creating test API key:', error)
       return NextResponse.json({ 
         error: 'Failed to create test API key',
-        details: error 
+        details: error.message 
       }, { status: 500 })
     }
 
+    console.log('Test API key created successfully:', data.id)
+
     return NextResponse.json({
       success: true,
-      message: 'Test API key created successfully!',
       apiKey: data.api_key,
       keyInfo: {
+        id: data.id,
         name: data.name,
         permissions: data.permissions,
-        usageLimit: data.usage_limit,
-        status: data.status,
-        isAuthenticated: !!user
-      }
+        usageLimit: data.usage_limit
+      },
+      message: 'Test API key created successfully!'
     })
 
   } catch (error) {
@@ -107,6 +79,6 @@ export async function GET() {
   return NextResponse.json({
     message: 'POST to this endpoint to create a test API key',
     usage: 'curl -X POST http://localhost:3001/api/create-test-key',
-    note: 'Test keys will be associated with your account if logged in, or created as temporary demo keys if anonymous'
+    note: 'Authentication required - you must be signed in to create test keys'
   })
 } 

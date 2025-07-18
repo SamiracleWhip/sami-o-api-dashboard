@@ -56,7 +56,7 @@ export function useApiKeys() {
         if (value) params.append(key, value)
       })
 
-      const response = await fetch(`/api/api-keys?${params}`)
+      const response = await fetch(`/api/users/me/api-keys?${params}`)
       
       if (!response.ok) {
         if (response.status === 401) {
@@ -79,7 +79,7 @@ export function useApiKeys() {
   // Create new API key for the current user
   const createApiKey = useCallback(async (keyData: CreateApiKeyData) => {
     try {
-      const response = await fetch('/api/api-keys', {
+      const response = await fetch('/api/users/me/api-keys', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -108,12 +108,12 @@ export function useApiKeys() {
   // Update API key (user can only update their own keys)
   const updateApiKey = useCallback(async (id: string, updates: UpdateApiKeyData) => {
     try {
-      const response = await fetch('/api/api-keys', {
+      const response = await fetch(`/api/users/me/api-keys/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ id, ...updates }),
+        body: JSON.stringify(updates),
       })
 
       if (!response.ok) {
@@ -122,6 +122,9 @@ export function useApiKeys() {
         }
         if (response.status === 403) {
           throw new Error('You can only update your own API keys')
+        }
+        if (response.status === 404) {
+          throw new Error('API key not found')
         }
         throw new Error('Failed to update API key')
       }
@@ -140,7 +143,7 @@ export function useApiKeys() {
   // Delete API key (user can only delete their own keys)
   const deleteApiKey = useCallback(async (id: string) => {
     try {
-      const response = await fetch(`/api/api-keys?id=${id}`, {
+      const response = await fetch(`/api/users/me/api-keys/${id}`, {
         method: 'DELETE',
       })
 
@@ -150,6 +153,9 @@ export function useApiKeys() {
         }
         if (response.status === 403) {
           throw new Error('You can only delete your own API keys')
+        }
+        if (response.status === 404) {
+          throw new Error('API key not found')
         }
         throw new Error('Failed to delete API key')
       }
@@ -166,38 +172,24 @@ export function useApiKeys() {
   // Bulk delete API keys (user can only delete their own keys)
   const bulkDeleteApiKeys = useCallback(async (ids: string[]) => {
     try {
-      const response = await fetch(`/api/api-keys?ids=${ids.join(',')}`, {
-        method: 'DELETE',
-      })
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('Please log in to delete API keys')
-        }
-        if (response.status === 403) {
-          throw new Error('You can only delete your own API keys')
-        }
-        throw new Error('Failed to delete API keys')
-      }
-
-      setApiKeys(prev => prev.filter(key => !ids.includes(key.id)))
+      const promises = ids.map(id => deleteApiKey(id))
+      await Promise.all(promises)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error'
       setError(errorMessage)
       console.error('Error deleting API keys:', err)
       throw err
     }
-  }, [])
+  }, [deleteApiKey])
 
   // Regenerate API key (user can only regenerate their own keys)
   const regenerateApiKey = useCallback(async (id: string) => {
     try {
-      const response = await fetch('/api/api-keys/regenerate', {
+      const response = await fetch(`/api/users/me/api-keys/${id}/regenerate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id }),
+        }
       })
 
       if (!response.ok) {
@@ -206,6 +198,9 @@ export function useApiKeys() {
         }
         if (response.status === 403) {
           throw new Error('You can only regenerate your own API keys')
+        }
+        if (response.status === 404) {
+          throw new Error('API key not found')
         }
         throw new Error('Failed to regenerate API key')
       }
