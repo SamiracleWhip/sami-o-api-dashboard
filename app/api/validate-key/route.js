@@ -13,9 +13,17 @@ export async function POST(request) {
     }
 
     // Query the database to check if the API key exists and is active
+    // Also get user information
     const { data, error } = await supabaseAdmin
       .from('api_keys')
-      .select('id, name, status, api_key')
+      .select(`
+        id, 
+        name, 
+        status, 
+        api_key, 
+        user_id,
+        users!inner(id, name, email)
+      `)
       .eq('api_key', apiKey)
       .eq('status', 'active')
       .single();
@@ -50,7 +58,9 @@ export async function POST(request) {
       keyInfo: {
         id: data.id,
         name: data.name,
-        status: data.status
+        status: data.status,
+        userId: data.user_id,
+        user: data.users
       }
     });
 

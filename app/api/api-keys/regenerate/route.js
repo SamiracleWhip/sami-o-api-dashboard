@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
+import { getCurrentUser } from '@/lib/auth-helpers'
 
 // Helper function to generate API key
 function generateApiKey() {
@@ -12,14 +13,35 @@ function generateApiKey() {
   return result
 }
 
-// POST - Regenerate API key
+// POST - Regenerate user's API key
 export async function POST(request) {
   try {
+    // Get current user
+    const { user, error: authError } = await getCurrentUser(request)
+    if (!user) {
+      return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })
+    }
+
     const body = await request.json()
     const { id } = body
 
     if (!id) {
       return NextResponse.json({ error: 'ID is required' }, { status: 400 })
+    }
+
+    // Verify the API key belongs to the current user
+    const { data: existingKey, error: verifyError } = await supabaseAdmin
+      .from('api_keys')
+      .select('user_id')
+      .eq('id', id)
+      .single()
+
+    if (verifyError || !existingKey) {
+      return NextResponse.json({ error: 'API key not found' }, { status: 404 })
+    }
+
+    if (existingKey.user_id !== user.id) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 })
     }
 
     const newApiKey = generateApiKey()
@@ -32,6 +54,7 @@ export async function POST(request) {
         last_used: null
       })
       .eq('id', id)
+      .eq('user_id', user.id)  // Double-check user ownership
       .select()
       .single()
 

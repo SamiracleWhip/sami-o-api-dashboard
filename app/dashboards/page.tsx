@@ -9,6 +9,7 @@ import Sidebar from '@/components/Sidebar';
 // Types
 interface ApiKey {
   id: string;
+  user_id: string;
   name: string;
   description: string;
   permissions: string;

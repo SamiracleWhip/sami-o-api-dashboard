@@ -10,9 +10,20 @@ async function validateApiKey(apiKey) {
 
   try {
     // Query the database to check if the API key exists and is active
+    // Also get user information
     const { data, error } = await supabaseAdmin
       .from('api_keys')
-      .select('id, name, status, api_key, usage_count, usage_limit, permissions')
+      .select(`
+        id, 
+        name, 
+        status, 
+        api_key, 
+        usage_count, 
+        usage_limit, 
+        permissions,
+        user_id,
+        users!inner(id, name, email)
+      `)
       .eq('api_key', apiKey)
       .eq('status', 'active')
       .single()
@@ -50,7 +61,9 @@ async function validateApiKey(apiKey) {
       keyInfo: {
         id: data.id,
         name: data.name,
-        permissions: data.permissions
+        permissions: data.permissions,
+        userId: data.user_id,
+        user: data.users
       }
     }
   } catch (error) {
@@ -198,54 +211,21 @@ async function generateSummary(repoData) {
   return summary
 }
 
-// Helper function to calculate activity score
-function calculateActivityScore(repo, commits) {
-  const now = new Date()
-  const updatedAt = new Date(repo.updated_at)
-  const daysSinceUpdate = (now - updatedAt) / (1000 * 60 * 60 * 24)
-  
-  let score = 0
-  
-  // Recent updates boost score
-  if (daysSinceUpdate < 7) score += 30
-  else if (daysSinceUpdate < 30) score += 20
-  else if (daysSinceUpdate < 90) score += 10
-  
-  // Commit frequency
-  score += Math.min(commits.length * 5, 25)
-  
-  // Open issues indicate activity
-  score += Math.min(repo.open_issues_count * 2, 20)
-  
-  return Math.min(score, 100)
+// Helper functions for calculating scores
+function calculateActivityScore(repository, recentCommits) {
+  // Simple scoring based on recent activity and repo age
+  const daysAgo = (new Date() - new Date(repository.updated_at)) / (1000 * 60 * 60 * 24)
+  const commitsScore = Math.min(recentCommits.length * 10, 50)
+  const freshnessScore = Math.max(0, 50 - daysAgo * 2)
+  return Math.round(commitsScore + freshnessScore)
 }
 
-// Helper function to calculate popularity score
-function calculatePopularityScore(repo) {
-  const stars = repo.stargazers_count
-  const forks = repo.forks_count
-  
-  let score = 0
-  
-  // Stars contribute to popularity
-  if (stars > 1000) score += 40
-  else if (stars > 100) score += 30
-  else if (stars > 10) score += 20
-  else if (stars > 0) score += 10
-  
-  // Forks indicate usefulness
-  if (forks > 100) score += 30
-  else if (forks > 10) score += 20
-  else if (forks > 1) score += 10
-  
-  // Language and topics add relevance
-  if (repo.language) score += 10
-  if (repo.topics && repo.topics.length > 0) score += 10
-  
-  // License adds credibility
-  if (repo.license) score += 10
-  
-  return Math.min(score, 100)
+function calculatePopularityScore(repository) {
+  // Simple scoring based on stars, forks, and watchers
+  const starsScore = Math.min(repository.stargazers_count / 100, 60)
+  const forksScore = Math.min(repository.forks_count / 50, 30)
+  const watchersScore = Math.min(repository.watchers_count / 100, 10)
+  return Math.round(starsScore + forksScore + watchersScore)
 }
 
 // POST - Summarize GitHub repository
@@ -313,7 +293,12 @@ export async function POST(request) {
       summary,
       apiKeyInfo: {
         name: validation.keyInfo.name,
-        permissions: validation.keyInfo.permissions
+        permissions: validation.keyInfo.permissions,
+        user: {
+          id: validation.keyInfo.userId,
+          name: validation.keyInfo.user.name,
+          email: validation.keyInfo.user.email
+        }
       },
       requestedUrl: githubUrl,
       timestamp: new Date().toISOString()
@@ -358,7 +343,8 @@ export async function GET() {
         'Interesting project facts extraction',
         'Recent commit history',
         'Activity and popularity scoring',
-        'API key validation and usage tracking'
+        'API key validation and usage tracking',
+        'User-specific API key management'
       ]
     })
   } catch (error) {

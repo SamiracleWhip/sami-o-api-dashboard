@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 
 interface ApiKey {
   id: string;
+  user_id: string;
   name: string;
   description: string;
   permissions: string;
@@ -44,7 +45,7 @@ export function useApiKeys() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Fetch all API keys
+  // Fetch all API keys for the current user
   const fetchApiKeys = useCallback(async (searchParams: SearchParams = {}) => {
     try {
       setLoading(true)
@@ -58,6 +59,9 @@ export function useApiKeys() {
       const response = await fetch(`/api/api-keys?${params}`)
       
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Please log in to access your API keys')
+        }
         throw new Error('Failed to fetch API keys')
       }
 
@@ -72,7 +76,7 @@ export function useApiKeys() {
     }
   }, [])
 
-  // Create new API key
+  // Create new API key for the current user
   const createApiKey = useCallback(async (keyData: CreateApiKeyData) => {
     try {
       const response = await fetch('/api/api-keys', {
@@ -84,6 +88,9 @@ export function useApiKeys() {
       })
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Please log in to create API keys')
+        }
         throw new Error('Failed to create API key')
       }
 
@@ -98,7 +105,7 @@ export function useApiKeys() {
     }
   }, [])
 
-  // Update API key
+  // Update API key (user can only update their own keys)
   const updateApiKey = useCallback(async (id: string, updates: UpdateApiKeyData) => {
     try {
       const response = await fetch('/api/api-keys', {
@@ -110,6 +117,12 @@ export function useApiKeys() {
       })
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Please log in to update API keys')
+        }
+        if (response.status === 403) {
+          throw new Error('You can only update your own API keys')
+        }
         throw new Error('Failed to update API key')
       }
 
@@ -124,7 +137,7 @@ export function useApiKeys() {
     }
   }, [])
 
-  // Delete API key
+  // Delete API key (user can only delete their own keys)
   const deleteApiKey = useCallback(async (id: string) => {
     try {
       const response = await fetch(`/api/api-keys?id=${id}`, {
@@ -132,6 +145,12 @@ export function useApiKeys() {
       })
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Please log in to delete API keys')
+        }
+        if (response.status === 403) {
+          throw new Error('You can only delete your own API keys')
+        }
         throw new Error('Failed to delete API key')
       }
 
@@ -144,7 +163,7 @@ export function useApiKeys() {
     }
   }, [])
 
-  // Bulk delete API keys
+  // Bulk delete API keys (user can only delete their own keys)
   const bulkDeleteApiKeys = useCallback(async (ids: string[]) => {
     try {
       const response = await fetch(`/api/api-keys?ids=${ids.join(',')}`, {
@@ -152,6 +171,12 @@ export function useApiKeys() {
       })
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Please log in to delete API keys')
+        }
+        if (response.status === 403) {
+          throw new Error('You can only delete your own API keys')
+        }
         throw new Error('Failed to delete API keys')
       }
 
@@ -164,7 +189,7 @@ export function useApiKeys() {
     }
   }, [])
 
-  // Regenerate API key
+  // Regenerate API key (user can only regenerate their own keys)
   const regenerateApiKey = useCallback(async (id: string) => {
     try {
       const response = await fetch('/api/api-keys/regenerate', {
@@ -176,6 +201,12 @@ export function useApiKeys() {
       })
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Please log in to regenerate API keys')
+        }
+        if (response.status === 403) {
+          throw new Error('You can only regenerate your own API keys')
+        }
         throw new Error('Failed to regenerate API key')
       }
 
@@ -190,7 +221,7 @@ export function useApiKeys() {
     }
   }, [])
 
-  // Bulk update status
+  // Bulk update status (user can only update their own keys)
   const bulkUpdateStatus = useCallback(async (ids: string[], status: string) => {
     try {
       const promises = ids.map(id => updateApiKey(id, { status }))

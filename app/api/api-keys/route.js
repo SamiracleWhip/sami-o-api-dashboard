@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
+import { getCurrentUser } from '@/lib/auth-helpers'
 
 // Helper function to generate API key
 function generateApiKey() {
@@ -12,9 +13,15 @@ function generateApiKey() {
   return result
 }
 
-// GET - Fetch all API keys
+// GET - Fetch user's API keys
 export async function GET(request) {
   try {
+    // Get current user
+    const { user, error: authError } = await getCurrentUser(request)
+    if (!user) {
+      return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search')
     const status = searchParams.get('status')
@@ -23,6 +30,7 @@ export async function GET(request) {
     let query = supabaseAdmin
       .from('api_keys')
       .select('*')
+      .eq('user_id', user.id)  // Filter by user ID
       .order('created_at', { ascending: false })
 
     // Apply search filter
@@ -54,9 +62,15 @@ export async function GET(request) {
   }
 }
 
-// POST - Create new API key
+// POST - Create new API key for the current user
 export async function POST(request) {
   try {
+    // Get current user
+    const { user, error: authError } = await getCurrentUser(request)
+    if (!user) {
+      return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })
+    }
+
     const body = await request.json()
     const { name, description, permissions, status, keyType, usageLimit } = body
 
@@ -66,6 +80,7 @@ export async function POST(request) {
     }
 
     const newApiKey = {
+      user_id: user.id,  // Associate with current user
       name,
       description: description || `${keyType} API key`,
       permissions: keyType === 'production' ? 'write' : 'read',
@@ -94,14 +109,35 @@ export async function POST(request) {
   }
 }
 
-// PUT - Update API key
+// PUT - Update user's API key
 export async function PUT(request) {
   try {
+    // Get current user
+    const { user, error: authError } = await getCurrentUser(request)
+    if (!user) {
+      return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })
+    }
+
     const body = await request.json()
     const { id, name, description, permissions, status, keyType, usageLimit } = body
 
     if (!id) {
       return NextResponse.json({ error: 'ID is required' }, { status: 400 })
+    }
+
+    // Verify the API key belongs to the current user
+    const { data: existingKey, error: verifyError } = await supabaseAdmin
+      .from('api_keys')
+      .select('user_id')
+      .eq('id', id)
+      .single()
+
+    if (verifyError || !existingKey) {
+      return NextResponse.json({ error: 'API key not found' }, { status: 404 })
+    }
+
+    if (existingKey.user_id !== user.id) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 })
     }
 
     const updates = {
@@ -117,6 +153,7 @@ export async function PUT(request) {
       .from('api_keys')
       .update(updates)
       .eq('id', id)
+      .eq('user_id', user.id)  // Double-check user ownership
       .select()
       .single()
 
@@ -132,9 +169,15 @@ export async function PUT(request) {
   }
 }
 
-// DELETE - Delete API key
+// DELETE - Delete user's API key(s)
 export async function DELETE(request) {
   try {
+    // Get current user
+    const { user, error: authError } = await getCurrentUser(request)
+    if (!user) {
+      return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
     const ids = searchParams.get('ids')
@@ -143,7 +186,10 @@ export async function DELETE(request) {
       return NextResponse.json({ error: 'ID or IDs are required' }, { status: 400 })
     }
 
-    let query = supabaseAdmin.from('api_keys').delete()
+    let query = supabaseAdmin
+      .from('api_keys')
+      .delete()
+      .eq('user_id', user.id)  // Ensure user can only delete their own keys
 
     if (ids) {
       // Bulk delete

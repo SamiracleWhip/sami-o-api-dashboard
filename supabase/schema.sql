@@ -1,6 +1,7 @@
 -- Create the api_keys table
 CREATE TABLE IF NOT EXISTS api_keys (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     permissions VARCHAR(50) NOT NULL DEFAULT 'read',
@@ -23,6 +24,9 @@ CREATE INDEX IF NOT EXISTS idx_api_keys_status ON api_keys(status);
 -- Create an index on key_type for filtering
 CREATE INDEX IF NOT EXISTS idx_api_keys_type ON api_keys(key_type);
 
+-- Create an index on user_id for faster user-specific queries
+CREATE INDEX IF NOT EXISTS idx_api_keys_user_id ON api_keys(user_id);
+
 -- Create a function to update the updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -41,9 +45,33 @@ CREATE TRIGGER update_api_keys_updated_at
 -- Enable Row Level Security (RLS)
 ALTER TABLE api_keys ENABLE ROW LEVEL SECURITY;
 
--- Create a policy that allows all operations (you can modify this based on your auth requirements)
-CREATE POLICY "Enable all operations for api_keys" ON api_keys
-    FOR ALL USING (true); 
+-- Drop the old policy
+DROP POLICY IF EXISTS "Enable all operations for api_keys" ON api_keys;
+
+-- Create user-specific policies for api_keys
+CREATE POLICY "Users can read own api_keys" ON api_keys
+    FOR SELECT USING (
+        auth.uid()::text = user_id::text OR auth.role() = 'service_role'
+    );
+
+CREATE POLICY "Users can create own api_keys" ON api_keys
+    FOR INSERT WITH CHECK (
+        auth.uid()::text = user_id::text OR auth.role() = 'service_role'
+    );
+
+CREATE POLICY "Users can update own api_keys" ON api_keys
+    FOR UPDATE USING (
+        auth.uid()::text = user_id::text OR auth.role() = 'service_role'
+    );
+
+CREATE POLICY "Users can delete own api_keys" ON api_keys
+    FOR DELETE USING (
+        auth.uid()::text = user_id::text OR auth.role() = 'service_role'
+    );
+
+-- Service role policy for administrative access
+CREATE POLICY "Service role full access api_keys" ON api_keys
+    FOR ALL USING (auth.role() = 'service_role');
 
 -- NextAuth.js required tables for Google SSO
 -- These tables are required by @auth/supabase-adapter
@@ -85,7 +113,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     expires TIMESTAMP WITH TIME ZONE NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW') NOT NULL
 );
 
 -- Verification tokens table
