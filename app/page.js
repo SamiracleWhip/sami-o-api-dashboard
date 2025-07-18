@@ -1,3 +1,4 @@
+// Purple theme styling applied throughout - force update
 'use client'
 
 import { Button } from "@/components/ui/button"
@@ -41,6 +42,7 @@ export default function Home() {
   const [error, setError] = useState(null)
   const [isEditing, setIsEditing] = useState(false)
   const [apiKey, setApiKey] = useState('')
+  const [isGeneratingKey, setIsGeneratingKey] = useState(false)
   const [jsonPayload, setJsonPayload] = useState(`{
   "githubUrl": "https://github.com/langchain-ai/langchain"
 }`)
@@ -77,6 +79,31 @@ export default function Home() {
       setError(err.message)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const generateTestApiKey = async () => {
+    setIsGeneratingKey(true)
+    try {
+      const response = await fetch('/api/create-test-key', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to generate test API key')
+      }
+
+      const data = await response.json()
+      setApiKey(data.apiKey)
+      setError(null)
+    } catch (err) {
+      console.error('Failed to generate test key:', err)
+      setError('Failed to generate test API key. Please try signing up for a free account.')
+    } finally {
+      setIsGeneratingKey(false)
     }
   }
 
@@ -445,17 +472,35 @@ export default function Home() {
                 <CardContent className="space-y-4">
                   <div>
                     <label className="text-sm font-medium mb-2 block text-purple-100">API Key:</label>
-                    <Input
-                      type="password"
-                      value={apiKey}
-                      onChange={(e) => setApiKey(e.target.value)}
-                      placeholder="Enter your API key (smo-...)"
-                      className="bg-purple-900/20 border-purple-400/40 text-purple-100 placeholder:text-purple-300/60 backdrop-blur-sm focus:border-purple-400 focus:ring-purple-400/50"
-                    />
+                    <div className="flex gap-2">
+                      <Input
+                        type="password"
+                        value={apiKey}
+                        onChange={(e) => setApiKey(e.target.value)}
+                        placeholder="Enter your API key (smo-...)"
+                        className="flex-1 bg-purple-900/20 border-purple-400/40 text-purple-100 placeholder:text-purple-300/60 backdrop-blur-sm focus:border-purple-400 focus:ring-purple-400/50"
+                      />
+                      <Button
+                        onClick={generateTestApiKey}
+                        disabled={isGeneratingKey}
+                        size="sm"
+                        variant="outline"
+                        className="shrink-0 border-purple-400/40 text-purple-200 hover:bg-purple-500/20 hover:text-purple-100"
+                      >
+                        {isGeneratingKey ? (
+                          <>
+                            <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                            Generating...
+                          </>
+                        ) : (
+                          'Generate Test Key'
+                        )}
+                      </Button>
+                    </div>
                     {!session && !apiKey && (
                       <div className="mt-2 p-3 bg-blue-500/20 border border-blue-400/30 rounded-lg">
                         <p className="text-xs text-blue-200">
-                          <strong>Need an API key?</strong> Sign up for free to get instant access to our GitHub analysis API.
+                          <strong>Need an API key?</strong> Try our test key generator above or sign up for free to get your personal API key.
                         </p>
                         <Button 
                           onClick={() => signIn('google')} 
@@ -469,7 +514,7 @@ export default function Home() {
                     {session && !apiKey && (
                       <div className="mt-2 p-3 bg-green-500/20 border border-green-400/30 rounded-lg">
                         <p className="text-xs text-green-200">
-                          <strong>Welcome back!</strong> Go to your dashboard to create or copy an API key.
+                          <strong>Welcome back!</strong> Use the test key generator above or go to your dashboard for your personal API keys.
                         </p>
                         <Link href="/dashboards">
                           <Button 
