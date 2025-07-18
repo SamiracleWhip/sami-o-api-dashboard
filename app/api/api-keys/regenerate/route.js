@@ -16,7 +16,7 @@ function generateApiKey() {
 // POST - Regenerate user's API key
 export async function POST(request) {
   try {
-    // Get current user
+    // Get current authenticated user
     const { user, error: authError } = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })

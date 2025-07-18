@@ -17,10 +17,8 @@ function generateApiKey() {
 export async function GET(request) {
   try {
     console.log('=== API KEYS GET REQUEST ===')
-    console.log('Request URL:', request.url)
-    console.log('Request headers:', Object.fromEntries(request.headers.entries()))
     
-    // Get current user
+    // Get current authenticated user
     const { user, error: authError } = await getCurrentUser(request)
     console.log('Auth result:', { user: user ? { id: user.id, email: user.email } : null, authError })
     
@@ -30,7 +28,7 @@ export async function GET(request) {
         error: authError || 'Authentication required',
         debug: {
           authError,
-          hasNextAuthSecret: !!process.env.NEXTAUTH_SECRET,
+          message: 'Please sign in to access your API keys',
           timestamp: new Date().toISOString()
         }
       }, { status: 401 })
@@ -97,7 +95,7 @@ export async function GET(request) {
 // POST - Create new API key for the current user
 export async function POST(request) {
   try {
-    // Get current user
+    // Get current authenticated user
     const { user, error: authError } = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })
@@ -144,7 +142,7 @@ export async function POST(request) {
 // PUT - Update user's API key
 export async function PUT(request) {
   try {
-    // Get current user
+    // Get current authenticated user
     const { user, error: authError } = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })
@@ -204,7 +202,7 @@ export async function PUT(request) {
 // DELETE - Delete user's API key(s)
 export async function DELETE(request) {
   try {
-    // Get current user
+    // Get current authenticated user
     const { user, error: authError } = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })
