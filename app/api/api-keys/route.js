@@ -16,11 +16,27 @@ function generateApiKey() {
 // GET - Fetch user's API keys
 export async function GET(request) {
   try {
+    console.log('=== API KEYS GET REQUEST ===')
+    console.log('Request URL:', request.url)
+    console.log('Request headers:', Object.fromEntries(request.headers.entries()))
+    
     // Get current user
     const { user, error: authError } = await getCurrentUser(request)
+    console.log('Auth result:', { user: user ? { id: user.id, email: user.email } : null, authError })
+    
     if (!user) {
-      return NextResponse.json({ error: authError || 'Authentication required' }, { status: 401 })
+      console.log('Authentication failed:', authError)
+      return NextResponse.json({ 
+        error: authError || 'Authentication required',
+        debug: {
+          authError,
+          hasNextAuthSecret: !!process.env.NEXTAUTH_SECRET,
+          timestamp: new Date().toISOString()
+        }
+      }, { status: 401 })
     }
+
+    console.log('User authenticated successfully:', user.email)
 
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search')
@@ -32,6 +48,8 @@ export async function GET(request) {
       .select('*')
       .eq('user_id', user.id)  // Filter by user ID
       .order('created_at', { ascending: false })
+
+    console.log('Querying for user_id:', user.id)
 
     // Apply search filter
     if (search) {
@@ -49,16 +67,30 @@ export async function GET(request) {
     }
 
     const { data, error } = await query
+    console.log('Supabase query result:', { data: data?.length || 0, error })
 
     if (error) {
       console.error('Error fetching API keys:', error)
-      return NextResponse.json({ error: 'Failed to fetch API keys' }, { status: 500 })
+      return NextResponse.json({ 
+        error: 'Failed to fetch API keys',
+        debug: {
+          supabaseError: error,
+          userId: user.id
+        }
+      }, { status: 500 })
     }
 
+    console.log('Successfully fetched', data?.length || 0, 'API keys')
     return NextResponse.json(data)
   } catch (error) {
     console.error('Error in GET /api/api-keys:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      debug: {
+        message: error.message,
+        stack: error.stack
+      }
+    }, { status: 500 })
   }
 }
 
