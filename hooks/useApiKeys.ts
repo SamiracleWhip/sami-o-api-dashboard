@@ -56,7 +56,9 @@ export function useApiKeys() {
         if (value) params.append(key, value)
       })
 
-      const response = await fetch(`/api/users/me/api-keys?${params}`)
+      const response = await fetch(`/api/users/me/api-keys?${params}`, {
+        credentials: 'include'
+      })
       
       if (!response.ok) {
         if (response.status === 401) {
@@ -84,6 +86,7 @@ export function useApiKeys() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(keyData),
       })
 
@@ -113,6 +116,7 @@ export function useApiKeys() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(updates),
       })
 
@@ -145,6 +149,7 @@ export function useApiKeys() {
     try {
       const response = await fetch(`/api/users/me/api-keys/${id}`, {
         method: 'DELETE',
+        credentials: 'include'
       })
 
       if (!response.ok) {
@@ -189,7 +194,8 @@ export function useApiKeys() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        }
+        },
+        credentials: 'include'
       })
 
       if (!response.ok) {

@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Plus, Edit2, Trash2, Eye, EyeOff, Clipboard, Check, Search, RefreshCw, AlertCircle, CheckCircle, XCircle, Menu, X } from 'lucide-react';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { useApiKeys } from '@/hooks/useApiKeys';
 import Sidebar from '@/components/Sidebar';
 
@@ -100,29 +102,29 @@ const PageHeader = ({ apiKeys }: { apiKeys: ApiKey[] }) => (
               <span className="text-xs font-bold">?</span>
             </div>
           </div>
-          <div className="mb-2">
-            <div className="flex justify-between text-xs md:text-sm mb-1">
-              <span style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>Plan</span>
-              <span style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
-                {apiKeys.filter(k => k.status === 'active').length * 100} / 1,000 Credits
-              </span>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs opacity-80">Total Keys</span>
+                <span className="text-xs bg-white/20 px-2 py-1 rounded-full">{apiKeys.length}</span>
+              </div>
+              <div className="text-2xl font-bold">{apiKeys.length}</div>
             </div>
-            <div className="w-full bg-white/20 rounded-full h-2 md:h-3 border border-white/30 shadow-inner">
-              <div 
-                className="bg-gradient-to-r from-yellow-400 to-orange-500 h-2 md:h-3 rounded-full transition-all duration-300 shadow-md" 
-                style={{ width: `${Math.min((apiKeys.filter(k => k.status === 'active').length * 100) / 1000 * 100, 100)}%` }}
-              />
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs opacity-80">Active</span>
+                <span className="text-xs bg-green-500/20 px-2 py-1 rounded-full">{apiKeys.filter(k => k.status === 'active').length}</span>
+              </div>
+              <div className="text-2xl font-bold">{apiKeys.filter(k => k.status === 'active').length}</div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs opacity-80">Usage</span>
+                <span className="text-xs bg-blue-500/20 px-2 py-1 rounded-full">{apiKeys.reduce((sum, k) => sum + k.usage_count, 0)}</span>
+              </div>
+              <div className="text-2xl font-bold">{apiKeys.reduce((sum, k) => sum + k.usage_count, 0)}</div>
             </div>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <div className="w-5 h-5 md:w-6 md:h-6 bg-white/20 rounded-full flex items-center justify-center border border-white/30">
-            <div className="w-2.5 h-2.5 md:w-3 md:h-3 bg-white rounded-full shadow-sm"></div>
-          </div>
-          <span className="text-xs md:text-sm opacity-90" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
-            {apiKeys.filter(k => k.status === 'active').length} active API key{apiKeys.filter(k => k.status === 'active').length !== 1 ? 's' : ''}
-          </span>
         </div>
       </div>
     </div>
@@ -431,9 +433,24 @@ const Notification = ({ notification }: {
 
 // Main Dashboard Component
 export default function Dashboard() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const { apiKeys, loading, error, createApiKey, updateApiKey, deleteApiKey, regenerateApiKey, bulkDeleteApiKeys, bulkUpdateStatus, fetchApiKeys } = useApiKeys();
   
-  // State
+  // Debug logging
+  useEffect(() => {
+    console.log('Dashboard Debug:', {
+      sessionStatus: status,
+      session: session ? {
+        user: session.user?.email,
+        expires: session.expires
+      } : null,
+      apiKeysLoading: loading,
+      apiKeysError: error
+    });
+  }, [session, status, loading, error]);
+  
+  // State - Always call these hooks in the same order
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
@@ -452,23 +469,34 @@ export default function Dashboard() {
     usageLimit: '1000'
   });
 
-  // Computed values
+  // Effect to redirect if not authenticated
+  useEffect(() => {
+    if (status === 'loading') return; // Still loading
+    if (!session) {
+      console.log('No session found, redirecting to sign in');
+      router.push('/auth/signin');
+    } else {
+      console.log('Session found:', session.user?.email);
+    }
+  }, [session, status, router]);
+
+  // Computed values - Always compute these
   const filteredKeys = apiKeys.filter(key =>
     key.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     key.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Handlers
-  const showNotification = (message: string, type: 'success' | 'error' | 'delete' = 'success') => {
+  // Handlers - Always define these
+  const showNotification = useCallback((message: string, type: 'success' | 'error' | 'delete' = 'success') => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 3000);
-  };
+  }, []);
 
   const handleFormDataChange = useCallback((updater: (prev: FormData) => FormData) => {
     setFormData(updater);
   }, []);
 
-  const handleCreate = async (e: React.FormEvent, updatedFormData?: FormData) => {
+  const handleCreate = useCallback(async (e: React.FormEvent, updatedFormData?: FormData) => {
     e.preventDefault();
     const dataToUse = updatedFormData || formData;
     
@@ -488,9 +516,9 @@ export default function Dashboard() {
     } catch (error) {
       showNotification('Failed to create API key', 'error');
     }
-  };
+  }, [formData, createApiKey, showNotification]);
 
-  const handleEdit = (key: ApiKey) => {
+  const handleEdit = useCallback((key: ApiKey) => {
     setEditingKey(key);
     setFormData({
       name: key.name,
@@ -501,9 +529,9 @@ export default function Dashboard() {
       usageLimit: key.usage_limit?.toString() || '1000'
     });
     setIsEditModalOpen(true);
-  };
+  }, []);
 
-  const handleUpdate = async (e: React.FormEvent, updatedFormData?: FormData) => {
+  const handleUpdate = useCallback(async (e: React.FormEvent, updatedFormData?: FormData) => {
     e.preventDefault();
     if (!editingKey) return;
     
@@ -522,80 +550,78 @@ export default function Dashboard() {
       showNotification('API key updated successfully!');
       setIsEditModalOpen(false);
       setEditingKey(null);
-      setFormData({ name: '', description: '', permissions: 'read', status: 'active', keyType: 'development', usageLimit: '1000' });
     } catch (error) {
       showNotification('Failed to update API key', 'error');
     }
-  };
+  }, [editingKey, formData, updateApiKey, showNotification]);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this API key?')) return;
-    
+  const handleDelete = useCallback(async (id: string) => {
     try {
       await deleteApiKey(id);
-      showNotification('API key deleted successfully!', 'delete');
+      showNotification('API key deleted successfully!');
     } catch (error) {
       showNotification('Failed to delete API key', 'error');
     }
-  };
+  }, [deleteApiKey, showNotification]);
 
-  const handleBulkDelete = async () => {
+  const handleBulkDelete = useCallback(async () => {
     if (selectedKeys.size === 0) return;
-    if (!confirm(`Are you sure you want to delete ${selectedKeys.size} API key(s)?`)) return;
     
     try {
       await bulkDeleteApiKeys(Array.from(selectedKeys));
-      showNotification(`${selectedKeys.size} API key(s) deleted successfully!`, 'delete');
       setSelectedKeys(new Set());
+      showNotification(`${selectedKeys.size} API keys deleted successfully!`);
     } catch (error) {
       showNotification('Failed to delete API keys', 'error');
     }
-  };
+  }, [selectedKeys, bulkDeleteApiKeys, showNotification]);
 
-  const handleBulkStatusChange = async (newStatus: string) => {
+  const handleBulkStatusChange = useCallback(async (newStatus: string) => {
     if (selectedKeys.size === 0) return;
     
     try {
       await bulkUpdateStatus(Array.from(selectedKeys), newStatus);
-      showNotification(`${selectedKeys.size} API key(s) ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully!`);
       setSelectedKeys(new Set());
+      showNotification(`${selectedKeys.size} API keys updated successfully!`);
     } catch (error) {
       showNotification('Failed to update API keys', 'error');
     }
-  };
+  }, [selectedKeys, bulkUpdateStatus, showNotification]);
 
-  const toggleKeySelection = (keyId: string) => {
-    const newSelected = new Set(selectedKeys);
-    if (newSelected.has(keyId)) {
-      newSelected.delete(keyId);
-    } else {
-      newSelected.add(keyId);
-    }
-    setSelectedKeys(newSelected);
-  };
+  const toggleKeySelection = useCallback((keyId: string) => {
+    setSelectedKeys(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(keyId)) {
+        newSet.delete(keyId);
+      } else {
+        newSet.add(keyId);
+      }
+      return newSet;
+    });
+  }, []);
 
-  const handleRegenerateKey = async (id: string) => {
-    if (!confirm('Are you sure you want to regenerate this API key? The old key will no longer work.')) return;
-    
+  const handleRegenerateKey = useCallback(async (id: string) => {
     try {
       await regenerateApiKey(id);
       showNotification('API key regenerated successfully!');
     } catch (error) {
       showNotification('Failed to regenerate API key', 'error');
     }
-  };
+  }, [regenerateApiKey, showNotification]);
 
-  const toggleKeyVisibility = (id: string) => {
-    const newVisible = new Set(visibleKeys);
-    if (newVisible.has(id)) {
-      newVisible.delete(id);
-    } else {
-      newVisible.add(id);
-    }
-    setVisibleKeys(newVisible);
-  };
+  const toggleKeyVisibility = useCallback((id: string) => {
+    setVisibleKeys(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  }, []);
 
-  const copyToClipboard = async (key: string, keyId: string) => {
+  const copyToClipboard = useCallback(async (key: string, keyId: string) => {
     try {
       await navigator.clipboard.writeText(key);
       setCopiedKey(keyId);
@@ -604,7 +630,28 @@ export default function Dashboard() {
     } catch (error) {
       showNotification('Failed to copy API key', 'error');
     }
-  };
+  }, [showNotification]);
+
+  // Render loading state
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  // Render authentication required state
+  if (!session) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-white">Redirecting to sign in...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Loading and error states
   if (loading) {

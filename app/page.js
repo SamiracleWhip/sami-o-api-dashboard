@@ -126,7 +126,24 @@ export default function Home() {
       <header className="px-4 lg:px-6 h-16 flex items-center border-b border-white/10 backdrop-blur-md bg-white/5 relative z-10">
         <Link className="flex items-center justify-center hover:opacity-75 transition-all duration-300 transform hover:scale-105" href="/">
           <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-400 rounded-lg flex items-center justify-center mr-3">
-            <Github className="h-5 w-5 text-white" />
+            {/* Custom Baby Icon */}
+            <svg className="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {/* Baby head */}
+              <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" fill="none"/>
+              {/* Baby body */}
+              <path d="M8 12 C8 16 16 16 16 12" stroke="currentColor" strokeWidth="2" fill="none"/>
+              {/* Baby arms */}
+              <path d="M6 10 L4 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M18 10 L20 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              {/* Baby legs */}
+              <path d="M10 16 L10 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M14 16 L14 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              {/* Baby eyes */}
+              <circle cx="10" cy="7" r="0.5" fill="currentColor"/>
+              <circle cx="14" cy="7" r="0.5" fill="currentColor"/>
+              {/* Baby smile */}
+              <path d="M10 9 Q12 11 14 9" stroke="currentColor" strokeWidth="1" fill="none"/>
+            </svg>
           </div>
           <span className="font-bold text-lg md:text-xl text-white">Sami-O</span>
         </Link>
@@ -318,7 +335,24 @@ export default function Home() {
                     <div className="text-center space-y-4 md:space-y-6">
                       <div className="flex items-center justify-center space-x-2 md:space-x-4">
                         <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-purple-400 to-pink-400 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg">
-                          <Github className="h-6 w-6 md:h-8 md:w-8 text-white" />
+                          {/* Custom Baby Icon */}
+                          <svg className="h-6 w-6 md:h-8 md:w-8 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            {/* Baby head */}
+                            <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" fill="none"/>
+                            {/* Baby body */}
+                            <path d="M8 12 C8 16 16 16 16 12" stroke="currentColor" strokeWidth="2" fill="none"/>
+                            {/* Baby arms */}
+                            <path d="M6 10 L4 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                            <path d="M18 10 L20 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                            {/* Baby legs */}
+                            <path d="M10 16 L10 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                            <path d="M14 16 L14 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                            {/* Baby eyes */}
+                            <circle cx="10" cy="7" r="0.5" fill="currentColor"/>
+                            <circle cx="14" cy="7" r="0.5" fill="currentColor"/>
+                            {/* Baby smile */}
+                            <path d="M10 9 Q12 11 14 9" stroke="currentColor" strokeWidth="1" fill="none"/>
+                          </svg>
                         </div>
                         <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-400 to-indigo-400 rounded-lg md:rounded-xl flex items-center justify-center shadow-lg animate-pulse">
                           <Code2 className="h-5 w-5 md:h-6 md:w-6 text-white" />
