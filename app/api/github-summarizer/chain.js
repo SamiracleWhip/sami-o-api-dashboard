@@ -196,6 +196,8 @@ async function createUnifiedSummaryChain() {
     - Recent Activity: {recentActivity}
     
     Write a concise, engaging summary that captures the essence of this repository. 
+    Format the response with proper paragraphs and line breaks for readability.
+    Use double line breaks between sections for clear separation.
     Be direct and avoid unnecessary details. Focus on what makes this repository valuable and interesting.
     Keep it under 250 words and make every sentence count.
   `)
@@ -254,52 +256,59 @@ export async function generateUnifiedSummary(repositoryData) {
 function generateFallbackUnifiedSummary(repositoryData) {
   console.log('Using fallback unified summarization')
   
-  const summary = []
+  const sections = []
   
   // Project overview
-  summary.push(`${repositoryData.name} is a ${repositoryData.language || 'software'} project`)
+  let overview = `${repositoryData.name} is a ${repositoryData.language || 'software'} project`
   if (repositoryData.description) {
-    summary.push(`that ${repositoryData.description.toLowerCase()}`)
+    overview += ` that ${repositoryData.description.toLowerCase()}`
   }
-  summary.push('.')
+  overview += '.'
+  sections.push(overview)
   
   // Statistics
-  summary.push(`This repository has ${repositoryData.stars?.toLocaleString() || '0'} stars, ${repositoryData.forks?.toLocaleString() || '0'} forks, and ${repositoryData.watchers?.toLocaleString() || '0'} watchers.`)
+  const stats = `This repository has ${repositoryData.stars?.toLocaleString() || '0'} stars, ${repositoryData.forks?.toLocaleString() || '0'} forks, and ${repositoryData.watchers?.toLocaleString() || '0'} watchers.`
+  sections.push(stats)
   
-  // Language and license
+  // Technology and license info
+  const techInfo = []
   if (repositoryData.language) {
-    summary.push(`It is primarily written in ${repositoryData.language}.`)
+    techInfo.push(`It is primarily written in ${repositoryData.language}.`)
   }
   if (repositoryData.license && repositoryData.license !== 'No license specified') {
-    summary.push(`The project is licensed under ${repositoryData.license}.`)
+    techInfo.push(`The project is licensed under ${repositoryData.license}.`)
+  }
+  if (techInfo.length > 0) {
+    sections.push(techInfo.join(' '))
   }
   
   // Topics
   if (repositoryData.topics && repositoryData.topics.length > 0) {
-    summary.push(`Key topics include: ${repositoryData.topics.join(', ')}.`)
+    sections.push(`Key topics include: ${repositoryData.topics.join(', ')}.`)
   }
   
   // Latest release
   if (repositoryData.latestRelease) {
-    summary.push(`The latest release is ${repositoryData.latestRelease.tag_name}.`)
+    sections.push(`The latest release is ${repositoryData.latestRelease.tag_name}.`)
   }
   
   // README summary
   if (repositoryData.readmeSummary && repositoryData.readmeSummary !== 'No README summary available') {
-    summary.push(`According to the README: ${repositoryData.readmeSummary}`)
+    sections.push(`According to the README: ${repositoryData.readmeSummary}`)
   }
   
   // Cool facts
   if (repositoryData.coolFacts && repositoryData.coolFacts.length > 0) {
-    summary.push(`Notable aspects include: ${repositoryData.coolFacts.join('; ')}.`)
+    sections.push(`Notable aspects include: ${repositoryData.coolFacts.join('; ')}.`)
   }
   
   // Recent activity
   if (repositoryData.recentActivity) {
-    summary.push(`Recent activity shows ${repositoryData.recentActivity.totalCommits} commits.`)
+    sections.push(`Recent activity shows ${repositoryData.recentActivity.totalCommits} commits.`)
   }
   
-  return summary.join(' ')
+  // Join sections with double line breaks for proper formatting
+  return sections.join('\n\n')
 }
 
 // Main function to summarize repository

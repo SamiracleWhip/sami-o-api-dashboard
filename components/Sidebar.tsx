@@ -5,10 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Home,
-  Key,
   Settings,
-  BarChart3,
-  Users,
   HelpCircle,
   ChevronLeft,
   ChevronRight,
@@ -27,9 +24,6 @@ interface SidebarProps {
 const navigationItems = [
   { name: 'Home', href: '/', icon: Home },
   { name: 'Dashboard', href: '/dashboards', icon: LayoutDashboard },
-  { name: 'API Keys', href: '/dashboards/api-keys', icon: Key },
-  { name: 'Analytics', href: '/dashboards/analytics', icon: BarChart3 },
-  { name: 'Users', href: '/dashboards/users', icon: Users },
   { name: 'Playground', href: '/playground', icon: Code },
   { name: 'Settings', href: '/dashboards/settings', icon: Settings },
   { name: 'Help', href: '/dashboards/help', icon: HelpCircle },

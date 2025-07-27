@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Key, CheckCircle, XCircle, AlertCircle, ArrowLeft, Send } from 'lucide-react';
+import { Key, CheckCircle, XCircle, AlertCircle, ArrowLeft, Send, Github, Loader2 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import Link from 'next/link';
 
@@ -10,14 +10,22 @@ export default function Playground() {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [apiKey, setApiKey] = useState('');
+  const [githubUrl, setGithubUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSummarizing, setIsSummarizing] = useState(false);
   const [validationResult, setValidationResult] = useState<{
     isValid: boolean;
     message: string;
     keyInfo?: any;
   } | null>(null);
+  const [summaryResult, setSummaryResult] = useState<{
+    success: boolean;
+    summary?: string;
+    repository?: any;
+    error?: string;
+  } | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleValidateKey = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!apiKey.trim()) return;
 
@@ -57,9 +65,52 @@ export default function Playground() {
     }
   };
 
+  const handleSummarizeRepo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!apiKey.trim() || !githubUrl.trim()) return;
+
+    setIsSummarizing(true);
+    setSummaryResult(null);
+
+    try {
+      const response = await fetch('/api/github-summarizer', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey.trim(),
+        },
+        body: JSON.stringify({ githubUrl: githubUrl.trim() }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSummaryResult({
+          success: true,
+          summary: data.summary,
+          repository: data.repository,
+        });
+      } else {
+        setSummaryResult({
+          success: false,
+          error: data.error || 'Failed to summarize repository',
+        });
+      }
+    } catch (error) {
+      setSummaryResult({
+        success: false,
+        error: 'Failed to connect to the service. Please try again.',
+      });
+    } finally {
+      setIsSummarizing(false);
+    }
+  };
+
   const handleClear = () => {
     setApiKey('');
+    setGithubUrl('');
     setValidationResult(null);
+    setSummaryResult(null);
   };
 
   return (
@@ -129,7 +180,7 @@ export default function Playground() {
               </div>
 
               <div className="p-4 sm:p-6">
-                <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+                <form onSubmit={handleValidateKey} className="space-y-4 md:space-y-6">
                   <div>
                     <label htmlFor="apiKey" className="block text-sm font-medium text-gray-700 mb-2">
                       API Key

@@ -656,9 +656,9 @@ export default function Home() {
                       <div className="space-y-3">
                         <div className="p-3 bg-green-500/20 border border-green-400/30 rounded-lg">
                           <p className="text-sm font-medium text-green-300">Repository Summary:</p>
-                          <p className="text-sm text-green-200 mt-1 whitespace-pre-wrap leading-relaxed">
+                          <div className="text-sm text-green-200 mt-1 whitespace-pre-wrap leading-relaxed">
                             {apiResponse.summary || 'Summary not available'}
-                          </p>
+                          </div>
                         </div>
                         {apiResponse.repository && (
                           <div className="p-3 bg-purple-500/20 border border-purple-400/30 rounded-lg">
