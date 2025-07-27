@@ -48,6 +48,13 @@ export default function Home() {
 }`)
 
   const handleApiRequest = async () => {
+    // Check if user is authenticated before proceeding
+    if (!session) {
+      // Redirect to sign in if not authenticated
+      signIn('google');
+      return;
+    }
+
     setIsLoading(true)
     setError(null)
     setApiResponse(null)
@@ -716,7 +723,7 @@ export default function Home() {
                 </CardHeader>
                 <CardContent className="space-y-3 md:space-y-4">
                   <ul className="space-y-2 md:space-y-3">
-                    {["5 repository analyses per month", "Basic summaries and insights", "Star tracking", "Email support"].map((feature, i) => (
+                    {["Limited to 200 requests", "Basic summaries and insights", "Star tracking", "Email support"].map((feature, i) => (
                       <li key={i} className="flex items-center">
                         <Check className="h-4 w-4 text-green-400 mr-3 flex-shrink-0" />
                         <span className="text-white/80 text-sm md:text-base">{feature}</span>

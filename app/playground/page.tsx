@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { useSession, signIn } from 'next-auth/react';
 import { Key, CheckCircle, XCircle, ArrowLeft, Send, Github, Loader2 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import Link from 'next/link';
 
 export default function Playground() {
+  const { data: session, status } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [apiKey, setApiKey] = useState('');
   const [githubUrl, setGithubUrl] = useState('');
@@ -55,6 +57,14 @@ export default function Playground() {
 
   const handleSummarizeRepo = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check if user is authenticated before proceeding
+    if (!session) {
+      // Redirect to sign in if not authenticated
+      signIn('google');
+      return;
+    }
+
     if (!apiKey.trim() || !githubUrl.trim()) return;
 
     setIsSummarizing(true);

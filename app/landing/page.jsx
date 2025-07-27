@@ -25,8 +25,10 @@ import {
 import Link from "next/link"
 import Image from "next/image"
 import { useState } from 'react'
+import { useSession, signIn } from 'next-auth/react'
 
 export default function LandingPage() {
+  const { data: session, status } = useSession()
   const [isLoading, setIsLoading] = useState(false)
   const [apiResponse, setApiResponse] = useState(null)
   const [error, setError] = useState(null)
@@ -36,6 +38,13 @@ export default function LandingPage() {
 }`)
 
   const handleApiRequest = async () => {
+    // Check if user is authenticated before proceeding
+    if (!session) {
+      // Redirect to sign in if not authenticated
+      signIn('google');
+      return;
+    }
+
     setIsLoading(true)
     setError(null)
     setApiResponse(null)
