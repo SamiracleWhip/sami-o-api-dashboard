@@ -11,10 +11,12 @@ async function createSummarizationChain() {
   const { ChatOpenAI } = await import('@langchain/openai')
   const { ChatPromptTemplate } = await import('@langchain/core/prompts')
 
-  // Initialize the LLM with structured output
+  // Initialize the LLM with structured output and optimized settings
   const llm = new ChatOpenAI({
     model: 'gpt-3.5-turbo',
-    temperature: 0.1
+    temperature: 0.1,
+    maxTokens: 200, // Reduced for faster generation
+    timeout: 8000 // 8 second timeout
   })
 
   // Bind the structured output schema to the model
@@ -24,19 +26,19 @@ async function createSummarizationChain() {
 
   // Create prompt template with more explicit instructions
   const promptTemplate = ChatPromptTemplate.fromTemplate(`
-    You are an expert software engineer analyzing a GitHub repository. Based on the README content below, provide a detailed technical summary and interesting facts.
+    You are an expert software engineer analyzing a GitHub repository. Based on the README content below, provide a concise technical summary and interesting facts.
 
     README Content:
     {readmeContent}
 
     Instructions:
-    1. SUMMARY: Write a clear, technical summary (100-300 words) that explains:
+    1. SUMMARY: Write a clear, technical summary (80-150 words) that explains:
        - What the project does and its main purpose
        - Key technologies and frameworks used
        - Target audience or use cases
        - Main features or capabilities
        
-    2. COOL FACTS: List 3-5 specific, interesting facts about this project such as:
+    2. COOL FACTS: List 2-3 specific, interesting facts about this project such as:
        - Unique technical features or innovations
        - Performance metrics or capabilities
        - Notable integrations or dependencies
@@ -45,6 +47,7 @@ async function createSummarizationChain() {
        - Specific use cases or industries it serves
        
     Make the summary informative and the facts genuinely interesting - avoid generic statements.
+    Keep responses concise for faster processing.
     
     Return your response in the exact format specified by the schema.
   `)
@@ -149,6 +152,154 @@ function generateFactsFromContent(content) {
   }
 
   return facts.slice(0, 5)
+}
+
+// New function to generate unified natural language summary
+async function createUnifiedSummaryChain() {
+  const { ChatOpenAI } = await import('@langchain/openai')
+  const { ChatPromptTemplate } = await import('@langchain/core/prompts')
+
+  // Initialize the LLM with optimized settings for speed
+  const llm = new ChatOpenAI({
+    model: 'gpt-3.5-turbo', // Using the faster model
+    temperature: 0.1, // Lower temperature for faster, more consistent responses
+    maxTokens: 300, // Limit tokens for faster generation
+    timeout: 10000 // 10 second timeout
+  })
+
+  // Create prompt template for unified summary
+  const promptTemplate = ChatPromptTemplate.fromTemplate(`
+    You are an expert software engineer creating a concise, natural language summary of a GitHub repository. 
+    
+    Based on the repository information provided, write a clear, focused summary (150-250 words) that includes:
+    
+    1. **Project Overview**: What the project does and its main purpose
+    2. **Key Technologies**: Primary programming language and main frameworks
+    3. **Repository Stats**: Stars, forks, and other relevant metrics
+    4. **Notable Features**: 2-3 most interesting or unique aspects
+    5. **Recent Activity**: Latest release or development status
+    
+    Repository Information:
+    - Name: {name}
+    - Description: {description}
+    - Language: {language}
+    - Stars: {stars}
+    - Forks: {forks}
+    - Watchers: {watchers}
+    - Created: {createdAt}
+    - Updated: {updatedAt}
+    - License: {license}
+    - Topics: {topics}
+    - Latest Release: {latestRelease}
+    - README Summary: {readmeSummary}
+    - Cool Facts: {coolFacts}
+    - Recent Activity: {recentActivity}
+    
+    Write a concise, engaging summary that captures the essence of this repository. 
+    Be direct and avoid unnecessary details. Focus on what makes this repository valuable and interesting.
+    Keep it under 250 words and make every sentence count.
+  `)
+
+  return promptTemplate.pipe(llm)
+}
+
+// Function to generate unified summary
+export async function generateUnifiedSummary(repositoryData) {
+  console.log('Generating unified summary...')
+  
+  // Check if OpenAI API key is available
+  const openaiApiKey = process.env.OPENAI_API_KEY
+  if (!openaiApiKey || (!openaiApiKey.startsWith('sk-') && !openaiApiKey.startsWith('sk-proj-'))) {
+    console.log('Invalid or missing OpenAI API key, using fallback')
+    return generateFallbackUnifiedSummary(repositoryData)
+  }
+
+  try {
+    console.log('Attempting to use OpenAI for unified summary...')
+    const chain = await createUnifiedSummaryChain()
+    
+    // Prepare the data for the prompt
+    const promptData = {
+      name: repositoryData.name || 'Unknown',
+      description: repositoryData.description || 'No description available',
+      language: repositoryData.language || 'Not specified',
+      stars: repositoryData.stars?.toLocaleString() || '0',
+      forks: repositoryData.forks?.toLocaleString() || '0',
+      watchers: repositoryData.watchers?.toLocaleString() || '0',
+      createdAt: repositoryData.createdAt ? new Date(repositoryData.createdAt).toLocaleDateString() : 'Unknown',
+      updatedAt: repositoryData.updatedAt ? new Date(repositoryData.updatedAt).toLocaleDateString() : 'Unknown',
+      license: repositoryData.license || 'Not specified',
+      topics: repositoryData.topics?.join(', ') || 'None',
+      latestRelease: repositoryData.latestRelease ? 
+        `${repositoryData.latestRelease.tag_name} (${new Date(repositoryData.latestRelease.published_at).toLocaleDateString()})` : 
+        'No releases found',
+      readmeSummary: repositoryData.readmeSummary || 'No README summary available',
+      coolFacts: repositoryData.coolFacts?.join('; ') || 'No additional facts available',
+      recentActivity: repositoryData.recentActivity ? 
+        `${repositoryData.recentActivity.totalCommits} recent commits` : 
+        'No recent activity data'
+    }
+    
+    const result = await chain.invoke(promptData)
+    console.log('Unified summary generated successfully')
+    return result.content
+  } catch (error) {
+    console.error('OpenAI unified summary failed:', error.message)
+    console.log('Falling back to text-based summary')
+    return generateFallbackUnifiedSummary(repositoryData)
+  }
+}
+
+// Fallback function for unified summary
+function generateFallbackUnifiedSummary(repositoryData) {
+  console.log('Using fallback unified summarization')
+  
+  const summary = []
+  
+  // Project overview
+  summary.push(`${repositoryData.name} is a ${repositoryData.language || 'software'} project`)
+  if (repositoryData.description) {
+    summary.push(`that ${repositoryData.description.toLowerCase()}`)
+  }
+  summary.push('.')
+  
+  // Statistics
+  summary.push(`This repository has ${repositoryData.stars?.toLocaleString() || '0'} stars, ${repositoryData.forks?.toLocaleString() || '0'} forks, and ${repositoryData.watchers?.toLocaleString() || '0'} watchers.`)
+  
+  // Language and license
+  if (repositoryData.language) {
+    summary.push(`It is primarily written in ${repositoryData.language}.`)
+  }
+  if (repositoryData.license && repositoryData.license !== 'No license specified') {
+    summary.push(`The project is licensed under ${repositoryData.license}.`)
+  }
+  
+  // Topics
+  if (repositoryData.topics && repositoryData.topics.length > 0) {
+    summary.push(`Key topics include: ${repositoryData.topics.join(', ')}.`)
+  }
+  
+  // Latest release
+  if (repositoryData.latestRelease) {
+    summary.push(`The latest release is ${repositoryData.latestRelease.tag_name}.`)
+  }
+  
+  // README summary
+  if (repositoryData.readmeSummary && repositoryData.readmeSummary !== 'No README summary available') {
+    summary.push(`According to the README: ${repositoryData.readmeSummary}`)
+  }
+  
+  // Cool facts
+  if (repositoryData.coolFacts && repositoryData.coolFacts.length > 0) {
+    summary.push(`Notable aspects include: ${repositoryData.coolFacts.join('; ')}.`)
+  }
+  
+  // Recent activity
+  if (repositoryData.recentActivity) {
+    summary.push(`Recent activity shows ${repositoryData.recentActivity.totalCommits} commits.`)
+  }
+  
+  return summary.join(' ')
 }
 
 // Main function to summarize repository

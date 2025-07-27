@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { getAuthenticatedUser, generateApiKey, supabaseAdmin } from '@/lib/api-auth'
+import { getAuthenticatedUser, generateApiKey } from '@/lib/api-auth'
+import { supabaseAdmin } from '@/lib/supabase'
 
 export async function POST(request) {
   try {

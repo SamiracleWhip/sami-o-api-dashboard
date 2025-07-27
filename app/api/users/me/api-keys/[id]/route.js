@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { getAuthenticatedUser, verifyApiKeyOwnership, supabaseAdmin } from '@/lib/api-auth'
+import { getAuthenticatedUser, verifyApiKeyOwnership } from '@/lib/api-auth'
+import { supabaseAdmin } from '@/lib/supabase'
 
 // GET /api/users/me/api-keys/[id] - Get specific API key
 export async function GET(request, { params }) {

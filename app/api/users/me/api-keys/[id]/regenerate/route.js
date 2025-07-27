@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { getAuthenticatedUser, verifyApiKeyOwnership, generateApiKey, supabaseAdmin } from '@/lib/api-auth'
+import { getAuthenticatedUser, verifyApiKeyOwnership, generateApiKey } from '@/lib/api-auth'
+import { supabaseAdmin } from '@/lib/supabase'
 
 // POST /api/users/me/api-keys/[id]/regenerate - Regenerate API key
 export async function POST(request, { params }) {

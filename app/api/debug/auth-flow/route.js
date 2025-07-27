@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { getToken } from 'next-auth/jwt'
-import { getAuthenticatedUser, supabaseAdmin } from '@/lib/api-auth'
+import { getAuthenticatedUser } from '@/lib/api-auth'
+import { supabaseAdmin } from '@/lib/supabase'
 
 export async function GET(request) {
   try {

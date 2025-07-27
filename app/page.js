@@ -656,18 +656,21 @@ export default function Home() {
                       <div className="space-y-3">
                         <div className="p-3 bg-green-500/20 border border-green-400/30 rounded-lg">
                           <p className="text-sm font-medium text-green-300">Repository Summary:</p>
-                          <p className="text-sm text-green-200 mt-1">
-                            {apiResponse.summary || apiResponse.repositorySummary}
+                          <p className="text-sm text-green-200 mt-1 whitespace-pre-wrap leading-relaxed">
+                            {apiResponse.summary || 'Summary not available'}
                           </p>
                         </div>
-                        {apiResponse.coolFacts && (
-                          <div className="p-3 bg-blue-500/20 border border-blue-400/30 rounded-lg">
-                            <p className="text-sm font-medium text-blue-300">Cool Facts:</p>
-                            <ul className="text-sm text-blue-200 mt-1 space-y-1">
-                              {apiResponse.coolFacts.map((fact, index) => (
-                                <li key={index}>• {fact}</li>
-                              ))}
-                            </ul>
+                        {apiResponse.repository && (
+                          <div className="p-3 bg-purple-500/20 border border-purple-400/30 rounded-lg">
+                            <p className="text-sm font-medium text-purple-300">Repository Info:</p>
+                            <div className="text-sm text-purple-200 mt-1 space-y-1">
+                              <p><strong>Name:</strong> {apiResponse.repository.name}</p>
+                              <p><strong>Stars:</strong> {apiResponse.repository.stars?.toLocaleString() || 'N/A'}</p>
+                              <p><strong>Language:</strong> {apiResponse.repository.language || 'Not specified'}</p>
+                              {apiResponse.repository.latest_release && (
+                                <p><strong>Latest Release:</strong> {apiResponse.repository.latest_release.tag_name}</p>
+                              )}
+                            </div>
                           </div>
                         )}
                         <pre className="w-full p-3 text-xs font-mono bg-purple-900/30 border border-purple-400/40 text-purple-100 rounded-lg overflow-auto max-h-40">

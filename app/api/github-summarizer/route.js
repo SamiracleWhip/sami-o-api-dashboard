@@ -1,7 +1,82 @@
 import { supabaseAdmin } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
-import { summarizeRepository } from './chain'
+import { summarizeRepository, generateUnifiedSummary } from './chain'
 import { validateApiKey, generateRateLimitHeaders, createRateLimitResponse } from '@/lib/api-auth'
+
+// Simple in-memory cache for GitHub API responses (5 minute TTL)
+const githubCache = new Map()
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+
+function getCacheKey(owner, repo) {
+  return `${owner}/${repo}`
+}
+
+function getCachedData(key) {
+  const cached = githubCache.get(key)
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data
+  }
+  return null
+}
+
+function setCachedData(key, data) {
+  githubCache.set(key, {
+    data,
+    timestamp: Date.now()
+  })
+}
+
+// Local fallback function for unified summary
+function generateFallbackUnifiedSummary(repositoryData) {
+  console.log('Using fallback unified summarization')
+  
+  const summary = []
+  
+  // Project overview
+  summary.push(`${repositoryData.name} is a ${repositoryData.language || 'software'} project`)
+  if (repositoryData.description) {
+    summary.push(`that ${repositoryData.description.toLowerCase()}`)
+  }
+  summary.push('.')
+  
+  // Statistics
+  summary.push(`This repository has ${repositoryData.stars?.toLocaleString() || '0'} stars, ${repositoryData.forks?.toLocaleString() || '0'} forks, and ${repositoryData.watchers?.toLocaleString() || '0'} watchers.`)
+  
+  // Language and license
+  if (repositoryData.language) {
+    summary.push(`It is primarily written in ${repositoryData.language}.`)
+  }
+  if (repositoryData.license && repositoryData.license !== 'No license specified') {
+    summary.push(`The project is licensed under ${repositoryData.license}.`)
+  }
+  
+  // Topics
+  if (repositoryData.topics && repositoryData.topics.length > 0) {
+    summary.push(`Key topics include: ${repositoryData.topics.join(', ')}.`)
+  }
+  
+  // Latest release
+  if (repositoryData.latestRelease) {
+    summary.push(`The latest release is ${repositoryData.latestRelease.tag_name}.`)
+  }
+  
+  // README summary
+  if (repositoryData.readmeSummary && repositoryData.readmeSummary !== 'No README summary available') {
+    summary.push(`According to the README: ${repositoryData.readmeSummary}`)
+  }
+  
+  // Cool facts
+  if (repositoryData.coolFacts && repositoryData.coolFacts.length > 0) {
+    summary.push(`Notable aspects include: ${repositoryData.coolFacts.join('; ')}.`)
+  }
+  
+  // Recent activity
+  if (repositoryData.recentActivity) {
+    summary.push(`Recent activity shows ${repositoryData.recentActivity.totalCommits} commits.`)
+  }
+  
+  return summary.join(' ')
+}
 
 // Helper function to extract GitHub repo info from URL
 function parseGitHubUrl(url) {
@@ -21,76 +96,84 @@ function parseGitHubUrl(url) {
 // Helper function to fetch GitHub repository data
 async function fetchGitHubRepoData(owner, repo) {
   try {
-    // Fetch repository information
-    const repoResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
-      headers: {
-        'Accept': 'application/vnd.github.v3+json',
-        'User-Agent': 'Sami-O-API-Dashboard'
-      }
-    })
+    // Check cache first
+    const cacheKey = getCacheKey(owner, repo)
+    const cached = getCachedData(cacheKey)
+    if (cached) {
+      console.log('Serving from cache for:', owner, repo)
+      return cached
+    }
 
-    if (!repoResponse.ok) {
-      if (repoResponse.status === 404) {
+    // Make all API calls in parallel for better performance
+    const [repoResponse, releaseResponse, readmeResponse, commitsResponse] = await Promise.allSettled([
+      fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+        headers: {
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'Sami-O-API-Dashboard'
+        }
+      }),
+      fetch(`https://api.github.com/repos/${owner}/${repo}/releases/latest`, {
+        headers: {
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'Sami-O-API-Dashboard'
+        }
+      }),
+      fetch(`https://api.github.com/repos/${owner}/${repo}/readme`, {
+        headers: {
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'Sami-O-API-Dashboard'
+        }
+      }),
+      fetch(`https://api.github.com/repos/${owner}/${repo}/commits?per_page=5`, {
+        headers: {
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'Sami-O-API-Dashboard'
+        }
+      })
+    ])
+
+    // Process repository data
+    if (repoResponse.status === 'rejected' || !repoResponse.value.ok) {
+      if (repoResponse.value?.status === 404) {
         throw new Error('Repository not found')
       }
-      throw new Error(`GitHub API error: ${repoResponse.status}`)
+      throw new Error(`GitHub API error: ${repoResponse.value?.status || 'Unknown error'}`)
     }
+    const repoData = await repoResponse.value.json()
 
-    const repoData = await repoResponse.json()
-
-    // Fetch latest release
+    // Process latest release
     let latestRelease = null
-    try {
-      const releaseResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/releases/latest`, {
-        headers: {
-          'Accept': 'application/vnd.github.v3+json',
-          'User-Agent': 'Sami-O-API-Dashboard'
-        }
-      })
-
-      if (releaseResponse.ok) {
-        latestRelease = await releaseResponse.json()
+    if (releaseResponse.status === 'fulfilled' && releaseResponse.value.ok) {
+      try {
+        latestRelease = await releaseResponse.value.json()
+      } catch (error) {
+        console.log('Failed to parse release data')
       }
-    } catch (error) {
-      console.log('No releases found or inaccessible')
     }
 
-    // Fetch README content
+    // Process README content
     let readmeContent = null
-    try {
-      const readmeResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/readme`, {
-        headers: {
-          'Accept': 'application/vnd.github.v3+json',
-          'User-Agent': 'Sami-O-API-Dashboard'
-        }
-      })
-
-      if (readmeResponse.ok) {
-        const readmeData = await readmeResponse.json()
+    if (readmeResponse.status === 'fulfilled' && readmeResponse.value.ok) {
+      try {
+        const readmeData = await readmeResponse.value.json()
         readmeContent = Buffer.from(readmeData.content, 'base64').toString('utf-8')
+      } catch (error) {
+        console.log('Failed to parse README data')
       }
-    } catch (error) {
-      console.log('README not found or inaccessible')
     }
 
-    // Fetch recent commits
+    // Process recent commits
     let recentCommits = []
-    try {
-      const commitsResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits?per_page=5`, {
-        headers: {
-          'Accept': 'application/vnd.github.v3+json',
-          'User-Agent': 'Sami-O-API-Dashboard'
-        }
-      })
-
-      if (commitsResponse.ok) {
-        recentCommits = await commitsResponse.json()
+    if (commitsResponse.status === 'fulfilled' && commitsResponse.value.ok) {
+      try {
+        const commitsData = await commitsResponse.value.json()
+        recentCommits = commitsData
+      } catch (error) {
+        console.log('Failed to parse commits data')
       }
-    } catch (error) {
-      console.log('Could not fetch commits')
     }
 
-    return {
+    const dataToCache = {
       repository: repoData,
       latestRelease: latestRelease ? {
         tag_name: latestRelease.tag_name,
@@ -107,22 +190,29 @@ async function fetchGitHubRepoData(owner, repo) {
         date: commit.commit.author.date
       }))
     }
+    setCachedData(cacheKey, dataToCache)
+    return dataToCache
   } catch (error) {
     throw error
   }
 }
 
-// Helper function to generate repository summary
+// Modified function to generate unified summary
 async function generateSummary(repoData) {
   console.log('Generating summary for:', repoData.repository.name)
   
   const { repository, readme, recentCommits } = repoData
   
-  // Get AI-powered README summary
+  // Get AI-powered README summary first (with timeout)
   let aiSummary
   try {
     console.log('Calling summarizeRepository...')
-    aiSummary = await summarizeRepository(readme)
+    const summaryPromise = summarizeRepository(readme)
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Summary generation timeout')), 8000)
+    )
+    
+    aiSummary = await Promise.race([summaryPromise, timeoutPromise])
     console.log('AI Summary result:', aiSummary)
   } catch (error) {
     console.error('Error in summarizeRepository:', error)
@@ -133,13 +223,15 @@ async function generateSummary(repoData) {
     }
   }
   
-  const summary = {
+  // Prepare repository data for unified summary (optimized)
+  const repositoryData = {
     name: repository.name,
     fullName: repository.full_name,
     description: repository.description || 'No description provided',
     language: repository.language || 'Not specified',
     stars: repository.stargazers_count,
     forks: repository.forks_count,
+    watchers: repository.watchers_count,
     openIssues: repository.open_issues_count,
     size: repository.size,
     createdAt: repository.created_at,
@@ -157,13 +249,44 @@ async function generateSummary(repoData) {
       latestCommit: recentCommits[0],
       commits: recentCommits
     } : null,
+    latestRelease: repoData.latestRelease,
     metrics: {
       activityScore: calculateActivityScore(repository, recentCommits),
       popularityScore: calculatePopularityScore(repository)
     }
   }
 
-  return summary
+  // Generate unified natural language summary (with timeout)
+  console.log('Generating unified summary...')
+  let unifiedSummary
+  try {
+    const unifiedPromise = generateUnifiedSummary(repositoryData)
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Unified summary timeout')), 10000)
+    )
+    
+    unifiedSummary = await Promise.race([unifiedPromise, timeoutPromise])
+  } catch (error) {
+    console.error('Error generating unified summary:', error)
+    unifiedSummary = generateFallbackUnifiedSummary(repositoryData)
+  }
+  
+  return {
+    summary: unifiedSummary,
+    repository: {
+      name: repository.name,
+      full_name: repository.full_name,
+      description: repository.description,
+      stars: repository.stargazers_count,
+      forks: repository.forks_count,
+      watchers: repository.watchers_count,
+      language: repository.language,
+      created_at: repository.created_at,
+      updated_at: repository.updated_at,
+      html_url: repository.html_url,
+      latest_release: repoData.latestRelease
+    }
+  }
 }
 
 // Helper functions for calculating scores
@@ -185,6 +308,8 @@ function calculatePopularityScore(repository) {
 
 // POST - Summarize GitHub repository
 export async function POST(request) {
+  const startTime = Date.now()
+  
   try {
     console.log('POST /api/github-summarizer called')
     
@@ -216,54 +341,42 @@ export async function POST(request) {
       )
     }
 
+    // Parse GitHub URL
     const repoInfo = parseGitHubUrl(githubUrl)
     if (!repoInfo) {
       return NextResponse.json(
-        { error: 'Invalid GitHub URL format. Please provide a valid GitHub repository URL.' },
+        { error: 'Invalid GitHub URL format. Please use: https://github.com/owner/repository' },
         { status: 400 }
       )
     }
 
-    console.log('Parsed repo info:', repoInfo)
-
     // Fetch repository data
-    let repoData
-    try {
-      console.log('Fetching GitHub repo data...')
-      repoData = await fetchGitHubRepoData(repoInfo.owner, repoInfo.repo)
-      console.log('Successfully fetched repo data')
-    } catch (error) {
-      console.error('Error fetching GitHub data:', error)
-      return NextResponse.json(
-        { error: error.message || 'Failed to fetch repository data' },
-        { status: error.message === 'Repository not found' ? 404 : 500 }
-      )
-    }
+    console.log('Fetching repository data...')
+    const fetchStartTime = Date.now()
+    const repoData = await fetchGitHubRepoData(repoInfo.owner, repoInfo.repo)
+    const fetchTime = Date.now() - fetchStartTime
+    console.log(`Repository data fetched in ${fetchTime}ms`)
 
     // Generate summary
     console.log('Generating summary...')
+    const summaryStartTime = Date.now()
     const summary = await generateSummary(repoData)
-    console.log('Summary generated successfully')
+    const summaryTime = Date.now() - summaryStartTime
+    console.log(`Summary generated in ${summaryTime}ms`)
 
     // Add rate limit headers to successful response
     const responseHeaders = generateRateLimitHeaders(validation.keyInfo)
+    
+    // Add performance headers
+    const totalTime = Date.now() - startTime
+    responseHeaders['X-Response-Time'] = `${totalTime}ms`
+    responseHeaders['X-Fetch-Time'] = `${fetchTime}ms`
+    responseHeaders['X-Summary-Time'] = `${summaryTime}ms`
 
     return NextResponse.json({
       success: true,
-      summary,
-      repository: {
-        name: repoData.repository.name,
-        full_name: repoData.repository.full_name,
-        description: repoData.repository.description,
-        stars: repoData.repository.stargazers_count,
-        forks: repoData.repository.forks_count,
-        watchers: repoData.repository.watchers_count,
-        language: repoData.repository.language,
-        created_at: repoData.repository.created_at,
-        updated_at: repoData.repository.updated_at,
-        html_url: repoData.repository.html_url,
-        latest_release: repoData.latestRelease
-      },
+      summary: summary.summary,
+      repository: summary.repository,
       apiKeyInfo: {
         name: validation.keyInfo.name,
         permissions: validation.keyInfo.permissions,
@@ -279,7 +392,12 @@ export async function POST(request) {
         }
       },
       requestedUrl: githubUrl,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      performance: {
+        totalTime: `${totalTime}ms`,
+        fetchTime: `${fetchTime}ms`,
+        summaryTime: `${summaryTime}ms`
+      }
     }, {
       headers: responseHeaders
     })
@@ -299,7 +417,7 @@ export async function GET() {
   try {
     return NextResponse.json({
       endpoint: '/api/github-summarizer',
-      description: 'Summarize GitHub repositories with API key authentication',
+      description: 'Summarize GitHub repositories with unified natural language summaries',
       methods: ['POST'],
       authentication: {
         type: 'header',
@@ -318,16 +436,25 @@ export async function GET() {
       },
       curlExample: 'curl -X POST http://localhost:3005/api/github-summarizer -H "Content-Type: application/json" -H "x-api-key: smo-your-api-key-here" -d \'{"githubUrl": "https://github.com/owner/repository"}\'',
       features: [
+        'Unified natural language repository summaries',
         'Repository metadata extraction',
         'Stars, forks, and watchers count',
         'Latest release information',
-        'AI-powered README content summarization',
-        'Interesting project facts extraction',
-        'Recent commit history',
+        'AI-powered README content analysis',
+        'Interesting project facts integration',
+        'Recent commit history analysis',
         'Activity and popularity scoring',
         'API key validation and usage tracking',
         'User-specific API key management'
-      ]
+      ],
+      responseFormat: {
+        success: 'boolean',
+        summary: 'string (natural language summary combining all repository information)',
+        repository: 'object (repository metadata)',
+        apiKeyInfo: 'object (API key usage information)',
+        requestedUrl: 'string',
+        timestamp: 'string'
+      }
     })
   } catch (error) {
     console.error('Error in GET /api/github-summarizer:', error)

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { getAuthenticatedUser, generateApiKey, supabaseAdmin } from '@/lib/api-auth'
+import { getAuthenticatedUser, generateApiKey } from '@/lib/api-auth'
+import { supabaseAdmin } from '@/lib/supabase'
 
 // GET /api/users/me/api-keys - Fetch user's API keys
 export async function GET(request) {
@@ -15,6 +16,12 @@ export async function GET(request) {
     
     if (!user) {
       return NextResponse.json({ error: authError }, { status: 401 })
+    }
+
+    // Check if supabaseAdmin is available
+    if (!supabaseAdmin) {
+      console.error('Supabase admin client not available - missing environment variables')
+      return NextResponse.json({ error: 'Database configuration error' }, { status: 500 })
     }
 
     const { searchParams } = new URL(request.url)
@@ -67,6 +74,12 @@ export async function POST(request) {
     const { user, error: authError } = await getAuthenticatedUser(request)
     if (!user) {
       return NextResponse.json({ error: authError }, { status: 401 })
+    }
+
+    // Check if supabaseAdmin is available
+    if (!supabaseAdmin) {
+      console.error('Supabase admin client not available - missing environment variables')
+      return NextResponse.json({ error: 'Database configuration error' }, { status: 500 })
     }
 
     const body = await request.json()

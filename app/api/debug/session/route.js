@@ -1,74 +1,67 @@
 import { NextResponse } from 'next/server'
-import { getToken } from 'next-auth/jwt'
-import { getAuthenticatedUser, supabaseAdmin } from '@/lib/api-auth'
+import { getAuthenticatedUser } from '@/lib/api-auth'
+import { supabaseAdmin } from '@/lib/supabase'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
 export async function GET(request) {
-  // Only allow in development or with explicit flag
-  if (process.env.NODE_ENV === 'production' && !process.env.ENABLE_DEBUG) {
-    return NextResponse.json({ error: 'Debug endpoint disabled in production' }, { status: 403 })
-  }
-
   try {
-    // Test JWT token extraction
+    // Check if supabaseAdmin is available
+    if (!supabaseAdmin) {
+      return NextResponse.json({
+        success: false,
+        error: 'Supabase admin client not available',
+        message: 'Missing environment variables'
+      }, { status: 500 })
+    }
+
+    // Get cookies
     const cookies = request.headers.get('cookie') || ''
-    const mockReq = {
-      headers: {
-        cookie: cookies,
-        ...Object.fromEntries(request.headers.entries())
-      }
-    }
-
-    const token = await getToken({
-      req: mockReq,
-      secret: process.env.NEXTAUTH_SECRET
-    })
-
-    // Test user lookup
-    let user = null
-    if (token?.email) {
-      const { data, error } = await supabaseAdmin
-        .from('users')
-        .select('*')
-        .eq('email', token.email)
-        .single()
-
-      user = data
-    }
-
-    // Test full authentication helper
-    const { user: authUser, error: authError } = await getAuthenticatedUser(request)
-
+    
+    // Test NextAuth session directly
+    const session = await getServerSession(authOptions)
+    
+    // Test our authentication function
+    const authResult = await getAuthenticatedUser(request)
+    
     return NextResponse.json({
-      cookies: cookies ? 'Present' : 'Missing',
-      token: token ? {
-        email: token.email,
-        name: token.name,
-        sub: token.sub
-      } : null,
-      user: user ? {
-        id: user.id,
-        email: user.email,
-        name: user.name
-      } : null,
+      timestamp: new Date().toISOString(),
+      cookies: {
+        present: cookies ? 'Yes' : 'No',
+        length: cookies.length,
+        containsNextAuth: cookies.includes('next-auth') ? 'Yes' : 'No',
+        containsSession: cookies.includes('session-token') ? 'Yes' : 'No',
+        containsCsrf: cookies.includes('csrf-token') ? 'Yes' : 'No'
+      },
+      nextAuthSession: {
+        exists: !!session,
+        user: session?.user ? {
+          email: session.user.email,
+          name: session.user.name,
+          id: session.user.id
+        } : null,
+        expires: session?.expires
+      },
       authHelper: {
-        success: !!authUser,
-        error: authError,
-        user: authUser ? {
-          id: authUser.id,
-          email: authUser.email,
-          name: authUser.name
+        success: authResult.user ? 'Yes' : 'No',
+        error: authResult.error,
+        user: authResult.user ? {
+          id: authResult.user.id,
+          email: authResult.user.email,
+          name: authResult.user.name
         } : null
       },
-      env: {
-        nextAuthSecret: process.env.NEXTAUTH_SECRET ? 'Set' : 'Missing',
-        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Set' : 'Missing',
-        supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY ? 'Set' : 'Missing'
+      environment: {
+        NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'Not set',
+        NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET ? 'Set' : 'Missing',
+        NODE_ENV: process.env.NODE_ENV
       }
     })
   } catch (error) {
-    console.error('Debug endpoint error:', error)
     return NextResponse.json({
-      error: error.message,
+      success: false,
+      error: 'Debug endpoint failed',
+      details: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : 'Hidden in production'
     }, { status: 500 })
   }
