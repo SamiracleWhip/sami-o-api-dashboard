@@ -110,7 +110,7 @@ export default function LandingPage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full py-8 md:py-16 lg:py-24 xl:py-32">
+        <section className="w-full py-8 md:py-12 lg:py-16 xl:py-20">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center space-y-4 text-center">
               <div className="space-y-2">
@@ -152,7 +152,7 @@ export default function LandingPage() {
         </section>
 
         {/* Features Section */}
-        <section id="features" className="w-full py-12 md:py-24 lg:py-32 bg-muted/50">
+        <section id="features" className="w-full py-8 md:py-16 lg:py-20 bg-muted/50">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
@@ -247,7 +247,7 @@ export default function LandingPage() {
         </section>
 
         {/* Interactive API Demo Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted/50">
+        <section className="w-full py-8 md:py-16 lg:py-20 bg-muted/50">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center mb-8">
               <div className="space-y-2">
@@ -274,7 +274,7 @@ export default function LandingPage() {
                       <Button
                         size="sm"
                         onClick={() => setIsEditing(!isEditing)}
-                        className="flex items-center gap-1 bg-purple-700 text-white hover:bg-purple-800 border border-purple-600 shadow-lg"
+                        className="flex items-center gap-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 border-0 text-white shadow-lg"
                       >
                         <Edit3 className="h-3 w-3" />
                         {isEditing ? 'Preview' : 'Edit'}
@@ -282,7 +282,7 @@ export default function LandingPage() {
                       <Button
                         size="sm"
                         onClick={() => copyToClipboard(jsonPayload)}
-                        className="flex items-center gap-1 bg-purple-700 text-white hover:bg-purple-800 border border-purple-600 shadow-lg"
+                        className="flex items-center gap-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 border-0 text-white shadow-lg"
                       >
                         <Copy className="h-3 w-3" />
                         Copy
@@ -341,7 +341,7 @@ export default function LandingPage() {
                       <Button
                         size="sm"
                         onClick={() => copyToClipboard(JSON.stringify(apiResponse, null, 2))}
-                        className="flex items-center gap-1 bg-purple-700 text-white hover:bg-purple-800 border border-purple-600 shadow-lg"
+                        className="flex items-center gap-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 border-0 text-white shadow-lg"
                       >
                         <Copy className="h-3 w-3" />
                         Copy
@@ -433,7 +433,7 @@ export default function LandingPage() {
         </section>
 
         {/* Pricing Section */}
-        <section id="pricing" className="w-full py-12 md:py-24 lg:py-32">
+        <section id="pricing" className="w-full py-8 md:py-16 lg:py-20">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
@@ -578,7 +578,7 @@ export default function LandingPage() {
         </section>
 
         {/* CTA Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted/50">
+        <section className="w-full py-8 md:py-16 lg:py-20 bg-muted/50">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
@@ -606,7 +606,7 @@ export default function LandingPage() {
         </section>
 
         {/* Stats Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32">
+        <section className="w-full py-8 md:py-16 lg:py-20">
           <div className="container px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-3 lg:gap-12">
               <div className="flex flex-col items-center space-y-4 text-center">
