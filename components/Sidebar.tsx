@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
 import {
   Home,
   Settings,
@@ -12,7 +13,9 @@ import {
   Menu,
   X,
   Code,
-  LayoutDashboard
+  LayoutDashboard,
+  LogOut,
+  User
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -32,6 +35,7 @@ const navigationItems = [
 export default function Sidebar({ isMobile = false, isOpen = false, onClose }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
+  const { data: session, status } = useSession();
 
   // Determine if we're in mobile view or desktop view
   const isMobileView = isMobile || isOpen;
@@ -43,6 +47,10 @@ export default function Sidebar({ isMobile = false, isOpen = false, onClose }: S
     bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300 ease-in-out
     flex flex-col h-full shadow-lg lg:shadow-none
   `;
+
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: '/' });
+  };
 
   return (
     <>
@@ -116,15 +124,77 @@ export default function Sidebar({ isMobile = false, isOpen = false, onClose }: S
           })}
         </nav>
 
+        {/* User Profile Section */}
+        {session?.user && (
+          <div className="p-4 lg:p-6 border-t border-gray-200 dark:border-gray-700">
+            {(!isCollapsed || isMobileView) ? (
+              <div className="space-y-3">
+                {/* User Info */}
+                <div className="flex items-center space-x-3">
+                  <div className="flex-shrink-0">
+                    {session.user.image ? (
+                      <img
+                        src={session.user.image}
+                        alt={session.user.name || 'User'}
+                        className="w-10 h-10 rounded-full border-2 border-gray-200 dark:border-gray-600"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <User className="w-5 h-5 text-white" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      {session.user.name || 'User'}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                      {session.user.email}
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Sign Out Button */}
+                <button
+                  onClick={handleSignOut}
+                  className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 hover:text-gray-800 dark:hover:text-gray-100 transition-all duration-200"
+                >
+                  <LogOut className="w-4 h-4 flex-shrink-0" />
+                  <span className="text-sm font-medium">Sign Out</span>
+                </button>
+              </div>
+            ) : (
+              /* Collapsed state - just show profile picture */
+              <div className="flex justify-center">
+                {session.user.image ? (
+                  <img
+                    src={session.user.image}
+                    alt={session.user.name || 'User'}
+                    className="w-8 h-8 rounded-full border-2 border-gray-200 dark:border-gray-600 cursor-pointer hover:opacity-80 transition-opacity"
+                    title={`${session.user.name}\n${session.user.email}`}
+                  />
+                ) : (
+                  <div 
+                    className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+                    title={`${session.user.name}\n${session.user.email}`}
+                  >
+                    <User className="w-4 h-4 text-white" />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Footer */}
-        <div className="p-4 lg:p-6 border-t border-gray-200 dark:border-gray-700 mt-auto">
+        <div className="p-4 lg:p-6 border-t border-gray-200 dark:border-gray-700">
           {(!isCollapsed || isMobileView) && (
             <div className="text-xs lg:text-sm text-gray-500 dark:text-gray-400 text-center">
-              <p className="mb-1">© 2024 Sami-O</p>
+              <p className="mb-1">© 2025 Sami-O</p>
               <p className="text-xs">v1.0.0</p>
             </div>
           )}
-          {isCollapsed && !isMobileView && (
+          {isCollapsed && !isMobileView && !session?.user && (
             <div className="flex justify-center">
               <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
             </div>

@@ -858,7 +858,7 @@ export default function Home() {
       <footer className="py-6 md:py-8 w-full border-t border-white/10 backdrop-blur-md bg-white/5 relative z-10">
         <div className="container px-4 md:px-6 mx-auto">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-white/50 text-center sm:text-left">© 2024 Sami-O Github Analyzer. All rights reserved.</p>
+            <p className="text-xs text-white/50 text-center sm:text-left">© 2025 Sami-O Github Analyzer. All rights reserved.</p>
             <nav className="flex flex-wrap gap-4 md:gap-6 justify-center sm:justify-end">
               {["Terms of Service", "Privacy Policy", "Contact"].map((link, i) => (
                 <Link key={i} className="text-xs hover:text-white/70 text-white/50 transition-colors" href={`/${link.toLowerCase().replace(/\s+/g, '-')}`}>
