@@ -38,6 +38,23 @@ async function fetchGitHubRepoData(owner, repo) {
 
     const repoData = await repoResponse.json()
 
+    // Fetch latest release
+    let latestRelease = null
+    try {
+      const releaseResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/releases/latest`, {
+        headers: {
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'Sami-O-API-Dashboard'
+        }
+      })
+
+      if (releaseResponse.ok) {
+        latestRelease = await releaseResponse.json()
+      }
+    } catch (error) {
+      console.log('No releases found or inaccessible')
+    }
+
     // Fetch README content
     let readmeContent = null
     try {
@@ -75,6 +92,13 @@ async function fetchGitHubRepoData(owner, repo) {
 
     return {
       repository: repoData,
+      latestRelease: latestRelease ? {
+        tag_name: latestRelease.tag_name,
+        name: latestRelease.name,
+        published_at: latestRelease.published_at,
+        body: latestRelease.body,
+        html_url: latestRelease.html_url
+      } : null,
       readme: readmeContent,
       recentCommits: recentCommits.map(commit => ({
         sha: commit.sha.substring(0, 7),
@@ -227,6 +251,19 @@ export async function POST(request) {
     return NextResponse.json({
       success: true,
       summary,
+      repository: {
+        name: repoData.repository.name,
+        full_name: repoData.repository.full_name,
+        description: repoData.repository.description,
+        stars: repoData.repository.stargazers_count,
+        forks: repoData.repository.forks_count,
+        watchers: repoData.repository.watchers_count,
+        language: repoData.repository.language,
+        created_at: repoData.repository.created_at,
+        updated_at: repoData.repository.updated_at,
+        html_url: repoData.repository.html_url,
+        latest_release: repoData.latestRelease
+      },
       apiKeyInfo: {
         name: validation.keyInfo.name,
         permissions: validation.keyInfo.permissions,
@@ -282,6 +319,8 @@ export async function GET() {
       curlExample: 'curl -X POST http://localhost:3005/api/github-summarizer -H "Content-Type: application/json" -H "x-api-key: smo-your-api-key-here" -d \'{"githubUrl": "https://github.com/owner/repository"}\'',
       features: [
         'Repository metadata extraction',
+        'Stars, forks, and watchers count',
+        'Latest release information',
         'AI-powered README content summarization',
         'Interesting project facts extraction',
         'Recent commit history',

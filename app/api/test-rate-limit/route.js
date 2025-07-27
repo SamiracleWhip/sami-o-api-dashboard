@@ -59,8 +59,23 @@ export async function POST(request) {
 
 export async function GET() {
   return NextResponse.json({
-    message: 'POST to this endpoint to test rate limiting',
-    usage: 'curl -X POST http://localhost:3000/api/test-rate-limit -H "Content-Type: application/json" -d \'{"apiKey": "your-api-key"}\'',
-    description: 'This endpoint tests the rate limiting functionality without actually processing a GitHub repository'
+    message: 'Test rate limiting functionality',
+    usage: 'POST to this endpoint with your API key to test rate limiting',
+    example: {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: {
+        apiKey: 'smo-your-api-key-here'
+      }
+    },
+    note: 'This endpoint only tests rate limiting. Use /api/github-summarizer for full repository analysis with stars and latest release information.',
+    features: [
+      'API key validation',
+      'Usage tracking',
+      'Rate limit enforcement',
+      'Usage statistics'
+    ]
   })
 } 
