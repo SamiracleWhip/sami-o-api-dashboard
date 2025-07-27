@@ -171,15 +171,20 @@ export default function Home() {
                   <span className="hidden lg:inline">Dashboard</span>
                 </Button>
               </Link>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => signOut()}
-                className="flex items-center gap-2 border-purple-400/40 text-purple-200 hover:bg-purple-500/20 hover:text-purple-100"
-              >
-                <User className="h-4 w-4" />
-                <span className="hidden lg:inline">Sign Out</span>
-              </Button>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-purple-200/80 font-medium">
+                  {session.user?.name || session.user?.email}
+                </span>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => signOut()}
+                  className="flex items-center gap-2 border-purple-400/40 text-purple-200 hover:bg-purple-500/20 hover:text-purple-100"
+                >
+                  <User className="h-4 w-4" />
+                  <span className="hidden lg:inline">Sign Out</span>
+                </Button>
+              </div>
             </>
           ) : (
             <>
@@ -234,6 +239,11 @@ export default function Home() {
             <div className="pt-4 border-t border-white/10 space-y-3">
               {session ? (
                 <>
+                  <div className="px-3 py-2">
+                    <span className="text-sm text-purple-200/80 font-medium">
+                      {session.user?.name || session.user?.email}
+                    </span>
+                  </div>
                   <Link href="/dashboards" onClick={() => setMobileMenuOpen(false)}>
                     <Button variant="ghost" className="w-full justify-start text-purple-200 hover:bg-purple-500/20 hover:text-purple-100">
                       <Settings className="h-4 w-4 mr-2" />
