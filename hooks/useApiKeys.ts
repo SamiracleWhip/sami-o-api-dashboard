@@ -23,7 +23,6 @@ interface CreateApiKeyData {
   permissions?: string;
   status?: string;
   keyType: string;
-  usageLimit: string;
 }
 
 interface UpdateApiKeyData {
@@ -32,7 +31,6 @@ interface UpdateApiKeyData {
   permissions?: string;
   status?: string;
   keyType?: string;
-  usageLimit?: string;
 }
 
 interface SearchParams {

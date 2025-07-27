@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS api_keys (
     permissions VARCHAR(50) NOT NULL DEFAULT 'read',
     status VARCHAR(20) NOT NULL DEFAULT 'active',
     key_type VARCHAR(20) NOT NULL DEFAULT 'development',
-    usage_limit INTEGER NOT NULL DEFAULT 1000,
+    usage_limit INTEGER NOT NULL DEFAULT 25,
     api_key TEXT NOT NULL UNIQUE,
     usage_count INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,

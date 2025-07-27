@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { validateApiKey } from '../github-summarizer/route'
+import { validateApiKey, generateRateLimitHeaders, createRateLimitResponse } from '@/lib/api-auth'
 
 export async function POST(request) {
   try {
@@ -17,36 +17,15 @@ export async function POST(request) {
     const validation = await validateApiKey(apiKey)
     
     if (!validation.valid) {
-      const responseHeaders = {}
-      if (validation.status === 429 && validation.keyInfo) {
-        responseHeaders['X-RateLimit-Limit'] = validation.keyInfo.usageLimit
-        responseHeaders['X-RateLimit-Remaining'] = Math.max(0, validation.keyInfo.usageLimit - validation.keyInfo.usageCount)
-        responseHeaders['X-RateLimit-Reset'] = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-      }
-      
-      return NextResponse.json({
-        success: false,
-        error: validation.error,
-        status: validation.status,
-        ...(validation.status === 429 && validation.keyInfo ? {
-          rateLimitInfo: {
-            limit: validation.keyInfo.usageLimit,
-            used: validation.keyInfo.usageCount,
-            remaining: Math.max(0, validation.keyInfo.usageLimit - validation.keyInfo.usageCount)
-          }
-        } : {})
-      }, {
-        status: validation.status,
-        headers: responseHeaders
+      const response = createRateLimitResponse(validation)
+      return NextResponse.json(response.body, {
+        status: response.status,
+        headers: response.headers
       })
     }
 
     // Success response
-    const responseHeaders = {
-      'X-RateLimit-Limit': validation.keyInfo.usageLimit,
-      'X-RateLimit-Remaining': Math.max(0, validation.keyInfo.usageLimit - validation.keyInfo.usageCount),
-      'X-RateLimit-Reset': new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-    }
+    const responseHeaders = generateRateLimitHeaders(validation.keyInfo)
 
     return NextResponse.json({
       success: true,

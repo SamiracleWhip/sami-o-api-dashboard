@@ -33,7 +33,7 @@ export async function POST(request) {
       permissions: 'read',
       status: 'active',
       key_type: 'development',
-      usage_limit: 100, // Lower limit for test keys
+      usage_limit: 25, // Lower limit for test keys
       api_key: generateApiKey(),
       usage_count: 0
     }

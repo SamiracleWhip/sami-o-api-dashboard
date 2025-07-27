@@ -42,36 +42,36 @@ export async function PUT(request, { params }) {
 
     const { id } = params
     const body = await request.json()
-    const { name, description, permissions, status, keyType, usageLimit } = body
+    const { name, description, permissions, status, keyType } = body
+
+    // Validate required fields
+    if (!name) {
+      return NextResponse.json(
+        { error: 'Name is required' },
+        { status: 400 }
+      )
+    }
 
     // Verify ownership
-    const { valid, error: ownershipError } = await verifyApiKeyOwnership(id, user.id)
-    if (!valid) {
-      return NextResponse.json({ error: ownershipError }, { status: ownershipError === 'API key not found' ? 404 : 403 })
+    const ownershipCheck = await verifyApiKeyOwnership(id, user.id)
+    if (!ownershipCheck.valid) {
+      return NextResponse.json(
+        { error: ownershipCheck.error },
+        { status: 403 }
+      )
     }
 
-    // Prepare updates
-    const updates = {
-      name,
-      description,
-      permissions,
-      status,
-      key_type: keyType,
-      usage_limit: parseInt(usageLimit)
-    }
-
-    // Remove undefined values
-    Object.keys(updates).forEach(key => {
-      if (updates[key] === undefined) {
-        delete updates[key]
-      }
-    })
-
+    // Update API key
     const { data, error } = await supabaseAdmin
       .from('api_keys')
-      .update(updates)
+      .update({
+        name,
+        description: description || '',
+        permissions: permissions || 'read',
+        status: status || 'active',
+        key_type: keyType || 'development'
+      })
       .eq('id', id)
-      .eq('user_id', user.id)
       .select()
       .single()
 

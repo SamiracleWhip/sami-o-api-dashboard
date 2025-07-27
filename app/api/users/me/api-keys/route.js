@@ -70,29 +70,33 @@ export async function POST(request) {
     }
 
     const body = await request.json()
-    const { name, description, permissions, status, keyType, usageLimit } = body
+    const { name, description, permissions, status, keyType } = body
 
     // Validate required fields
-    if (!name || !keyType) {
-      return NextResponse.json({ error: 'Name and key type are required' }, { status: 400 })
+    if (!name) {
+      return NextResponse.json(
+        { error: 'Name is required' },
+        { status: 400 }
+      )
     }
 
-    // Create new API key object
-    const newApiKey = {
-      user_id: user.id,
-      name,
-      description: description || `${keyType} API key`,
-      permissions: keyType === 'production' ? 'write' : 'read',
-      status: status || 'active',
-      key_type: keyType,
-      usage_limit: parseInt(usageLimit) || 1000,
-      api_key: generateApiKey(),
-      usage_count: 0
-    }
+    // Generate API key
+    const apiKey = generateApiKey()
 
+    // Create API key in database
     const { data, error } = await supabaseAdmin
       .from('api_keys')
-      .insert([newApiKey])
+      .insert({
+        user_id: user.id,
+        name,
+        description: description || '',
+        permissions: permissions || 'read',
+        status: status || 'active',
+        key_type: keyType || 'development',
+        api_key: apiKey,
+        usage_limit: 25, // Default usage limit
+        usage_count: 0
+      })
       .select()
       .single()
 

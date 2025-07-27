@@ -31,7 +31,6 @@ interface FormData {
   permissions: string;
   status: string;
   keyType: string;
-  usageLimit: string;
 }
 
 // Header Component
@@ -254,16 +253,12 @@ const FormFields = ({ formData, onFormDataChange, onSubmit, onCancel }: {
   onCancel: () => void;
 }) => {
   const nameInputRef = useRef<HTMLInputElement>(null);
-  const usageInputRef = useRef<HTMLInputElement>(null);
-  
+
   useEffect(() => {
     if (nameInputRef.current && nameInputRef.current.value !== formData.name) {
       nameInputRef.current.value = formData.name;
     }
-    if (usageInputRef.current && usageInputRef.current.value !== formData.usageLimit) {
-      usageInputRef.current.value = formData.usageLimit;
-    }
-  }, [formData.name, formData.usageLimit]);
+  }, [formData.name]);
 
   const handleInputChange = useCallback((field: keyof FormData, value: string) => {
     onFormDataChange(prev => ({ ...prev, [field]: value }));
@@ -272,8 +267,7 @@ const FormFields = ({ formData, onFormDataChange, onSubmit, onCancel }: {
   const handleFormSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     const currentName = nameInputRef.current?.value || formData.name;
-    const currentUsageLimit = usageInputRef.current?.value || formData.usageLimit;
-    const updatedFormData = { ...formData, name: currentName, usageLimit: currentUsageLimit };
+    const updatedFormData = { ...formData, name: currentName };
     onSubmit(e, updatedFormData);
   }, [onSubmit, formData]);
 
@@ -281,7 +275,7 @@ const FormFields = ({ formData, onFormDataChange, onSubmit, onCancel }: {
     <div className="p-4 md:p-6">
       <div className="text-center mb-4 md:mb-6">
         <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Create a new API key</h2>
-        <p className="text-sm md:text-base text-gray-600">Enter a name and limit for the new API key.</p>
+        <p className="text-sm md:text-base text-gray-600">Enter a name and type for the new API key.</p>
       </div>
 
       <form onSubmit={handleFormSubmit} className="space-y-4 md:space-y-6">
@@ -300,63 +294,19 @@ const FormFields = ({ formData, onFormDataChange, onSubmit, onCancel }: {
         </div>
 
         <div>
-          <label className="block text-sm md:text-base font-medium text-gray-700 mb-3">
-            Key Type — <span className="text-gray-500 font-normal">Choose the environment for this key</span>
-          </label>
-          <div className="space-y-3">
-            {['development', 'production'].map((type) => (
-              <div 
-                key={type}
-                className={`p-3 md:p-4 border rounded-lg cursor-pointer transition-all touch-manipulation ${
-                  formData.keyType === type 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : 'border-gray-300 hover:border-gray-400'
-                }`}
-                onClick={() => handleInputChange('keyType', type)}
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`w-4 h-4 md:w-5 md:h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                    formData.keyType === type 
-                      ? 'border-blue-500 bg-blue-500' 
-                      : 'border-gray-300'
-                  }`}>
-                    {formData.keyType === type && <div className="w-2 h-2 bg-white rounded-full"></div>}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm md:text-base font-medium text-gray-900 capitalize">{type}</span>
-                      <div className="bg-gray-100 px-2 py-1 rounded text-xs text-gray-600 flex-shrink-0">
-                        <span>{type === 'development' ? '🔧' : '🚀'}</span>
-                      </div>
-                    </div>
-                    <p className="text-xs md:text-sm text-gray-500">
-                      {type === 'development' 
-                        ? 'Rate limited to 100 requests/minute' 
-                        : 'No rate limit (250 req/min default)'
-                      }
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div>
           <label className="block text-sm md:text-base font-medium text-gray-700 mb-2">
-            Limit monthly usage*
+            Key Type*
           </label>
-          <input
-            ref={usageInputRef}
-            type="number"
-            defaultValue={formData.usageLimit}
-            placeholder="1000"
-            className="w-full p-3 md:p-4 border border-gray-300 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
+          <select
+            value={formData.keyType}
+            onChange={(e) => onFormDataChange(prev => ({ ...prev, keyType: e.target.value }))}
+            className="w-full p-3 md:p-4 border border-gray-300 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
             required
-          />
-          <p className="text-xs md:text-sm text-gray-500 mt-2">
-            * You can set a monthly limit to prevent unexpected charges
-          </p>
+          >
+            <option value="development">Development</option>
+            <option value="production">Production</option>
+            <option value="testing">Testing</option>
+          </select>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 pt-4">
@@ -465,8 +415,7 @@ export default function Dashboard() {
     description: '',
     permissions: 'read',
     status: 'active',
-    keyType: 'development',
-    usageLimit: '1000'
+    keyType: 'development'
   });
 
   // Effect to redirect if not authenticated
@@ -506,13 +455,12 @@ export default function Dashboard() {
         description: dataToUse.description,
         permissions: dataToUse.permissions,
         status: dataToUse.status,
-        keyType: dataToUse.keyType,
-        usageLimit: dataToUse.usageLimit
+        keyType: dataToUse.keyType
       });
       
       showNotification('API key created successfully!');
       setIsCreateModalOpen(false);
-      setFormData({ name: '', description: '', permissions: 'read', status: 'active', keyType: 'development', usageLimit: '1000' });
+      setFormData({ name: '', description: '', permissions: 'read', status: 'active', keyType: 'development' });
     } catch (error) {
       showNotification('Failed to create API key', 'error');
     }
@@ -525,8 +473,7 @@ export default function Dashboard() {
       description: key.description || '',
       permissions: key.permissions,
       status: key.status,
-      keyType: key.key_type || 'development',
-      usageLimit: key.usage_limit?.toString() || '1000'
+      keyType: key.key_type || 'development'
     });
     setIsEditModalOpen(true);
   }, []);
@@ -543,8 +490,7 @@ export default function Dashboard() {
         description: dataToUse.description,
         permissions: dataToUse.permissions,
         status: dataToUse.status,
-        keyType: dataToUse.keyType,
-        usageLimit: dataToUse.usageLimit
+        keyType: dataToUse.keyType
       });
       
       showNotification('API key updated successfully!');

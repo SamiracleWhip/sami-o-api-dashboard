@@ -1,96 +1,7 @@
 import { supabaseAdmin } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
 import { summarizeRepository } from './chain'
-
-// Helper function to validate API key and check rate limits
-async function validateApiKey(apiKey) {
-  if (!apiKey) {
-    return { valid: false, error: 'API key is required', status: 400 }
-  }
-
-  try {
-    // First, get the current API key data
-    const { data, error } = await supabaseAdmin
-      .from('api_keys')
-      .select(`
-        id, 
-        name, 
-        status, 
-        api_key, 
-        usage_count, 
-        usage_limit, 
-        permissions,
-        user_id,
-        users!inner(id, name, email)
-      `)
-      .eq('api_key', apiKey)
-      .eq('status', 'active')
-      .single()
-
-    if (error) {
-      // If no matching record found
-      if (error.code === 'PGRST116') {
-        return { valid: false, error: 'Invalid API key', status: 401 }
-      }
-      
-      console.error('Database error during API key validation:', error)
-      return { valid: false, error: 'Database error occurred', status: 500 }
-    }
-
-    if (!data) {
-      return { valid: false, error: 'Invalid API key', status: 401 }
-    }
-
-    // Check if usage limit is exceeded
-    if (data.usage_count >= data.usage_limit) {
-      return { 
-        valid: false, 
-        error: `Rate limit exceeded. API key usage limit is ${data.usage_limit} requests. Current usage: ${data.usage_count}`, 
-        status: 429,
-        keyInfo: {
-          id: data.id,
-          name: data.name,
-          permissions: data.permissions,
-          userId: data.user_id,
-          user: data.users,
-          usageCount: data.usage_count,
-          usageLimit: data.usage_limit
-        }
-      }
-    }
-
-    // Increment usage count atomically using a transaction
-    const { error: updateError } = await supabaseAdmin
-      .from('api_keys')
-      .update({ 
-        usage_count: data.usage_count + 1,
-        last_used: new Date().toISOString()
-      })
-      .eq('id', data.id)
-      .eq('usage_count', data.usage_count) // Optimistic locking to prevent race conditions
-
-    if (updateError) {
-      console.error('Error updating usage count:', updateError)
-      return { valid: false, error: 'Failed to update usage count', status: 500 }
-    }
-
-    return { 
-      valid: true, 
-      keyInfo: {
-        id: data.id,
-        name: data.name,
-        permissions: data.permissions,
-        userId: data.user_id,
-        user: data.users,
-        usageCount: data.usage_count + 1,
-        usageLimit: data.usage_limit
-      }
-    }
-  } catch (error) {
-    console.error('API key validation error:', error)
-    return { valid: false, error: 'Internal server error', status: 500 }
-  }
-}
+import { validateApiKey, generateRateLimitHeaders, createRateLimitResponse } from '@/lib/api-auth'
 
 // Helper function to extract GitHub repo info from URL
 function parseGitHubUrl(url) {
@@ -266,30 +177,11 @@ export async function POST(request) {
     if (!validation.valid) {
       console.log('API key validation failed:', validation.error)
       
-      // Add rate limit headers for 429 responses
-      const responseHeaders = {}
-      if (validation.status === 429 && validation.keyInfo) {
-        responseHeaders['X-RateLimit-Limit'] = validation.keyInfo.usageLimit
-        responseHeaders['X-RateLimit-Remaining'] = Math.max(0, validation.keyInfo.usageLimit - validation.keyInfo.usageCount)
-        responseHeaders['X-RateLimit-Reset'] = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // Reset in 24 hours
-      }
-      
-      return NextResponse.json(
-        { 
-          error: validation.error,
-          ...(validation.status === 429 && validation.keyInfo ? {
-            rateLimitInfo: {
-              limit: validation.keyInfo.usageLimit,
-              used: validation.keyInfo.usageCount,
-              remaining: Math.max(0, validation.keyInfo.usageLimit - validation.keyInfo.usageCount)
-            }
-          } : {})
-        },
-        { 
-          status: validation.status,
-          headers: responseHeaders
-        }
-      )
+      const response = createRateLimitResponse(validation)
+      return NextResponse.json(response.body, {
+        status: response.status,
+        headers: response.headers
+      })
     }
 
     // Validate GitHub URL
@@ -330,11 +222,7 @@ export async function POST(request) {
     console.log('Summary generated successfully')
 
     // Add rate limit headers to successful response
-    const responseHeaders = {
-      'X-RateLimit-Limit': validation.keyInfo.usageLimit,
-      'X-RateLimit-Remaining': Math.max(0, validation.keyInfo.usageLimit - validation.keyInfo.usageCount),
-      'X-RateLimit-Reset': new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // Reset in 24 hours
-    }
+    const responseHeaders = generateRateLimitHeaders(validation.keyInfo)
 
     return NextResponse.json({
       success: true,
