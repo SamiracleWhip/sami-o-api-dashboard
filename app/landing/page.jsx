@@ -98,12 +98,12 @@ export default function LandingPage() {
         </nav>
         <div className="flex items-center gap-2 ml-4">
           <Link href="/auth/signin">
-            <Button variant="ghost" size="sm">
+            <Button variant="outline" size="sm" className="border-purple-400/40 text-purple-600 hover:bg-purple-500/20">
               Login
             </Button>
           </Link>
           <Link href="/auth/signin">
-            <Button size="sm">Sign Up</Button>
+            <Button size="sm" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0">Sign Up</Button>
           </Link>
         </div>
       </header>
@@ -128,11 +128,11 @@ export default function LandingPage() {
               </div>
               <div className="space-x-4">
                 <Link href="/">
-                  <Button size="lg" className="h-11 px-8">
+                  <Button size="lg" className="h-11 px-8 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0">
                     Start Analyzing <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
-                <Button variant="outline" size="lg" className="h-11 px-8 bg-transparent">
+                <Button variant="outline" size="lg" className="h-11 px-8 border-purple-400/40 text-purple-600 hover:bg-purple-500/20">
                   View Demo
                 </Button>
               </div>
@@ -258,12 +258,6 @@ export default function LandingPage() {
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                   See our AI-powered GitHub analysis in action. Edit the request payload and test the API directly.
                 </p>
-              </div>
-              <div className="flex gap-3">
-                <Button variant="outline" className="flex items-center gap-2">
-                  <BookOpen className="h-4 w-4" />
-                  Documentation
-                </Button>
               </div>
             </div>
 
