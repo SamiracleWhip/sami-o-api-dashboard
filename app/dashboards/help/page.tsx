@@ -60,7 +60,7 @@ const PageHeader = () => (
               NEED ASSISTANCE?
             </p>
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.6)' }}>
-              We're Here to Help
+              We&apos;re Here to Help
             </h2>
           </div>
           <div className="flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full border border-white/30">
