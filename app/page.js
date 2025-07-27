@@ -310,20 +310,20 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row gap-3 md:gap-4 items-center px-4 w-full sm:w-auto">
                 {session ? (
                   <Link href="/dashboards" className="w-full sm:w-auto">
-                    <Button size="lg" className="w-full sm:w-auto h-12 px-6 md:px-8 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 transform hover:scale-105 transition-all duration-300 shadow-2xl">
+                    <Button size="lg" className="w-full sm:w-auto h-12 px-6 md:px-8 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 border-0 transform hover:scale-105 transition-all duration-300 shadow-2xl">
                       Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
                 ) : (
                   <Button 
                     size="lg" 
-                    className="w-full sm:w-auto h-12 px-6 md:px-8 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0 transform hover:scale-105 transition-all duration-300 shadow-2xl"
+                    className="w-full sm:w-auto h-12 px-6 md:px-8 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 border-0 transform hover:scale-105 transition-all duration-300 shadow-2xl"
                     onClick={() => signIn('google')}
                   >
                     Start Analyzing <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 )}
-                <Button variant="outline" size="lg" className="w-full sm:w-auto h-12 px-6 md:px-8 bg-purple-900/20 border-purple-400/40 text-purple-200 hover:bg-purple-500/20 hover:text-purple-100 backdrop-blur-sm">
+                <Button size="lg" className="w-full sm:w-auto h-12 px-6 md:px-8 bg-purple-700 text-white hover:bg-purple-800 border border-purple-600 shadow-lg transform hover:scale-105 transition-all duration-300">
                   View Demo
                 </Button>
               </div>
@@ -470,20 +470,16 @@ export default function Home() {
               <p className="max-w-[900px] text-white/70 text-base md:text-lg leading-relaxed px-4">
                 Test our AI-powered GitHub analysis API. Sign up for free to get your API key and start analyzing repositories.
               </p>
-              <div className="flex gap-3">
-                <Button variant="outline" className="flex items-center gap-2 border-purple-400/40 text-purple-200 hover:bg-purple-500/20 hover:text-purple-100">
-                  <BookOpen className="h-4 w-4" />
-                  Documentation
-                </Button>
-                {!session && (
+              {!session && (
+                <div className="flex gap-3">
                   <Button 
                     onClick={() => signIn('google')} 
                     className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0"
                   >
                     Get Free API Key
                   </Button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2 max-w-6xl mx-auto">
@@ -535,8 +531,7 @@ export default function Home() {
                         onClick={generateTestApiKey}
                         disabled={isGeneratingKey}
                         size="sm"
-                        variant="outline"
-                        className="shrink-0 border-purple-400/40 text-purple-200 hover:bg-purple-500/20 hover:text-purple-100"
+                        className="shrink-0 bg-purple-700 text-white hover:bg-purple-800 border border-purple-600 shadow-lg"
                       >
                         {isGeneratingKey ? (
                           <>

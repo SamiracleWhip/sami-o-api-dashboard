@@ -98,12 +98,12 @@ export default function LandingPage() {
         </nav>
         <div className="flex items-center gap-2 ml-4">
           <Link href="/auth/signin">
-            <Button variant="outline" size="sm" className="border-purple-400/40 text-purple-600 hover:bg-purple-500/20">
+            <Button size="sm" className="bg-purple-700 text-white hover:bg-purple-800 border border-purple-600 shadow-lg">
               Login
             </Button>
           </Link>
           <Link href="/auth/signin">
-            <Button size="sm" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0">Sign Up</Button>
+            <Button size="sm" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 border-0 text-white shadow-lg">Sign Up</Button>
           </Link>
         </div>
       </header>
@@ -128,11 +128,11 @@ export default function LandingPage() {
               </div>
               <div className="space-x-4">
                 <Link href="/">
-                  <Button size="lg" className="h-11 px-8 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border-0">
+                  <Button size="lg" className="h-11 px-8 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 border-0 text-white shadow-lg">
                     Start Analyzing <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
-                <Button variant="outline" size="lg" className="h-11 px-8 border-purple-400/40 text-purple-600 hover:bg-purple-500/20">
+                <Button size="lg" className="h-11 px-8 bg-purple-700 text-white hover:bg-purple-800 border border-purple-600 shadow-lg">
                   View Demo
                 </Button>
               </div>
@@ -272,19 +272,17 @@ export default function LandingPage() {
                     </CardTitle>
                     <div className="flex gap-2">
                       <Button
-                        variant="outline"
                         size="sm"
                         onClick={() => setIsEditing(!isEditing)}
-                        className="flex items-center gap-1"
+                        className="flex items-center gap-1 bg-purple-700 text-white hover:bg-purple-800 border border-purple-600 shadow-lg"
                       >
                         <Edit3 className="h-3 w-3" />
                         {isEditing ? 'Preview' : 'Edit'}
                       </Button>
                       <Button
-                        variant="outline"
                         size="sm"
                         onClick={() => copyToClipboard(jsonPayload)}
-                        className="flex items-center gap-1"
+                        className="flex items-center gap-1 bg-purple-700 text-white hover:bg-purple-800 border border-purple-600 shadow-lg"
                       >
                         <Copy className="h-3 w-3" />
                         Copy
@@ -314,7 +312,7 @@ export default function LandingPage() {
                   <Button 
                     onClick={handleApiRequest} 
                     disabled={isLoading}
-                    className="w-full flex items-center justify-center gap-2"
+                    className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 border-0 text-white shadow-lg"
                   >
                     {isLoading ? (
                       <>
@@ -341,10 +339,9 @@ export default function LandingPage() {
                     </CardTitle>
                     {apiResponse && (
                       <Button
-                        variant="outline"
                         size="sm"
                         onClick={() => copyToClipboard(JSON.stringify(apiResponse, null, 2))}
-                        className="flex items-center gap-1"
+                        className="flex items-center gap-1 bg-purple-700 text-white hover:bg-purple-800 border border-purple-600 shadow-lg"
                       >
                         <Copy className="h-3 w-3" />
                         Copy
