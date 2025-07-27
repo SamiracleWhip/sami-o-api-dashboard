@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useSession } from 'next-auth/react'
 
 interface ApiKey {
   id: string;
@@ -41,9 +42,17 @@ interface SearchParams {
 }
 
 export function useApiKeys() {
+  const { data: session } = useSession()
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Helper function to get headers
+  const getHeaders = useCallback(() => {
+    return {
+      'Content-Type': 'application/json',
+    }
+  }, [])
 
   // Fetch all API keys for the current user
   const fetchApiKeys = useCallback(async (searchParams: SearchParams = {}) => {
@@ -57,6 +66,7 @@ export function useApiKeys() {
       })
 
       const response = await fetch(`/api/users/me/api-keys?${params}`, {
+        headers: getHeaders(),
         credentials: 'include'
       })
       
@@ -76,16 +86,14 @@ export function useApiKeys() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [getHeaders])
 
   // Create new API key for the current user
   const createApiKey = useCallback(async (keyData: CreateApiKeyData) => {
     try {
       const response = await fetch('/api/users/me/api-keys', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getHeaders(),
         credentials: 'include',
         body: JSON.stringify(keyData),
       })
@@ -106,16 +114,14 @@ export function useApiKeys() {
       console.error('Error creating API key:', err)
       throw err
     }
-  }, [])
+  }, [getHeaders])
 
   // Update API key (user can only update their own keys)
   const updateApiKey = useCallback(async (id: string, updates: UpdateApiKeyData) => {
     try {
       const response = await fetch(`/api/users/me/api-keys/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getHeaders(),
         credentials: 'include',
         body: JSON.stringify(updates),
       })
@@ -142,13 +148,14 @@ export function useApiKeys() {
       console.error('Error updating API key:', err)
       throw err
     }
-  }, [])
+  }, [getHeaders])
 
   // Delete API key (user can only delete their own keys)
   const deleteApiKey = useCallback(async (id: string) => {
     try {
       const response = await fetch(`/api/users/me/api-keys/${id}`, {
         method: 'DELETE',
+        headers: getHeaders(),
         credentials: 'include'
       })
 
@@ -172,7 +179,7 @@ export function useApiKeys() {
       console.error('Error deleting API key:', err)
       throw err
     }
-  }, [])
+  }, [getHeaders])
 
   // Bulk delete API keys (user can only delete their own keys)
   const bulkDeleteApiKeys = useCallback(async (ids: string[]) => {
@@ -192,9 +199,7 @@ export function useApiKeys() {
     try {
       const response = await fetch(`/api/users/me/api-keys/${id}/regenerate`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getHeaders(),
         credentials: 'include'
       })
 
@@ -220,7 +225,7 @@ export function useApiKeys() {
       console.error('Error regenerating API key:', err)
       throw err
     }
-  }, [])
+  }, [getHeaders])
 
   // Bulk update status (user can only update their own keys)
   const bulkUpdateStatus = useCallback(async (ids: string[], status: string) => {
@@ -237,8 +242,10 @@ export function useApiKeys() {
 
   // Load API keys on mount
   useEffect(() => {
-    fetchApiKeys()
-  }, [fetchApiKeys])
+    if (session) {
+      fetchApiKeys()
+    }
+  }, [fetchApiKeys, session])
 
   return {
     apiKeys,
